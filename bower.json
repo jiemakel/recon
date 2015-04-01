@@ -1,0 +1,14 @@
+{
+  "name": "app",
+  "version": "0.0.0",
+  "dependencies": {
+    "angular": "latest",
+    "jquery": "latest",
+    "angular-ui-router": "latest",
+    "bootstrap": "latest",
+    "ngstorage": "latest"
+  },
+  "devDependencies": {
+    "angular-mocks": "latest"
+  }
+}
