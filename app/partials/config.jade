@@ -1,0 +1,10 @@
+.container
+  .form-group(ng-class="sparqlEndpointOK ? 'has-success' : 'has-error'")
+    label SPARQL endpoint
+    input.form-control(type="text",ng-model="config.sparqlEndpoint")
+  .form-group
+    label Match and short description query
+    yasqe(data="config.matchQuery")
+  .form-group
+    label Long description query
+    yasqe(data="config.longDescriptionQuery")

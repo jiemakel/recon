@@ -1,13 +1,17 @@
-.row
-  .col-xs-2
-    div Marc Jacobs
-    div Marc Jacobs
-    div Marc Jacobs
-    div Marc Jacobs
-    div Marc Jacobs
-    div Marc Jacobs
-    div Marc Jacobs
-  .col-xs-10
-    div Marc Jacobs
-    div Marc Jacobs
-    div Marc Jacobs
+.container-fluid
+  .row
+    button.btn.btn-success(ngf-select,ngf-change="loadCSVFile($files[0])",ngf-multiple="false") Load CSV file
+  .row
+    .col-xs-3
+      pagination.pagination-sm(ng-model="currentPage",items-per-page="config.pageSize",max-size="6",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
+      table.table.table-bordered.table-striped
+        tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.offset"): td(ng-class="row.match ? 'has-success' : 'has-error'")
+          input.form-control(select-on-focus,focus-on="row{{$index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-focus="focus($index)",ng-change="search($index,input)")
+    .col-xs-9
+      i.fa.fa-spinner.fa-spin(ng-show="queryRunning")
+      | {{error}}
+      table.table.table-bordered.table-striped
+        tr(ng-repeat="candidate in state.data[currentRow].candidates",ng-style="{'background-color':candidate.color}")
+          th {{($index+1)%10}}
+          th {{candidate.label}}
+          td(ng-repeat="descr in candidate.description") {{descr}}

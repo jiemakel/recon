@@ -24,7 +24,7 @@
     "gulp-less": "latest",
     "gulp-livescript": "latest",
     "gulp-load-plugins": "latest",
-    "gulp-minify-css": "^1.0.0",
+    "gulp-minify-css": "latest",
     "gulp-ng-annotate": "latest",
     "gulp-ng-html2js": "latest",
     "gulp-notify": "latest",

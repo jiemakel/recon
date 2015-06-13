@@ -5,8 +5,16 @@
     "angular": "latest",
     "jquery": "latest",
     "angular-ui-router": "latest",
+    "ngstorage": "latest",
+    "angular-http-auth": "latest",
+    "yasgui-yasqe": "latest",
+    "papaparse": "mholt/PapaParse",
+    "ng-file-upload": "latest",
+    "angular-bootstrap": "latest",
     "bootstrap": "latest",
-    "ngstorage": "latest"
+    "font-awesome": "latest",
+    "angular-hotkeys": "chieffancypants/angular-hotkeys",
+    "ng-focus-on": "latest"
   },
   "devDependencies": {
     "angular-mocks": "latest"
