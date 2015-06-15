@@ -2,7 +2,7 @@ angular.module("app").controller "MainCtrl", ($scope,$localStorage,$state,$state
   # initialization
   config = $localStorage.config
   $scope.config = config
-  $localStorage.state ?= { currentRow : -1}
+  $localStorage.state ?= { currentRow : 0, currentPage : 1}
   state = $localStorage.state
   $scope.state=state
   for number in [0 to 9]
@@ -22,7 +22,8 @@ angular.module("app").controller "MainCtrl", ($scope,$localStorage,$state,$state
     if (!file) then return
     Papa.parse(file, { complete: (csv) !->
       state.data=csv.data
-      state.offset = 0
+      state.currentPage = 1
+      state.currentRow = 0
       $scope.$digest!
     , error:handleError })
   canceller = void
