@@ -8,3 +8,7 @@
   .form-group
     label Long description query
     yasqe(data="config.longDescriptionQuery")
+  .form-group
+    label Entries per page
+    input.form-control(type="text",ng-model="config.pageSize")
+  button.btn.btn-success(ui-sref="home") Home

@@ -1,31 +1,36 @@
 angular.module("app").controller "ConfigCtrl", ($scope,$localStorage,$q,sparql) ->
   if !$localStorage.config then $localStorage.config = {
     sparqlEndpoint : void
-    pageSize : 40
+    pageSize : 20
     matchQuery : '''
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
       PREFIX text: <http://jena.apache.org/text#>
       PREFIX pf: <http://jena.hpl.hp.com/ARQ/property#>
       PREFIX sf: <http://ldf.fi/similarity-functions#>
-      SELECT ?entity (SAMPLE(?l) AS ?label) (GROUP_CONCAT(?s;separator=', ') AS ?synonyms) (SUM(?s)/COUNT(?s) AS ?score) {
+      PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
+      SELECT ?index ?entity (SAMPLE(?l) AS ?label) (SUM(?s)/COUNT(?s) AS ?score) (GROUP_CONCAT(DISTINCT ?al;separator=", ") AS ?alabel) {
         {
-          SELECT ?entity {
+          SELECT ?entity ?index {
             VALUES (?index ?queryTerm) {
               (<QUERIES>)
             }
             BIND(CONCAT(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(?queryTerm,"([\\\\+\\\\-\\\\&\\\\|\\\\!\\\\(\\\\)\\\\{\\\\}\\\\[\\\\]\\\\^\\\\\\"\\\\~\\\\*\\\\?\\\\:\\\\\\\\])","\\\\\\\\$1"),"^ +| +$", ""),",",""),"\\\\. ","* "),"([^*]) ","$1~0.8 "),"~0.8") AS ?fuzzyQueryTerm)
             ?entity text:query ?fuzzyQueryTerm .
+            ?entity a crm:E21_Person .
           }
+          LIMIT 10
         }
         ?entity rdfs:label|skos:prefLabel|skos:altLabel ?mlabel .
         ?str pf:strSplit (?queryTerm " ")
         BIND(sf:levenshteinSubstring(?str,STR(?mlabel)) AS ?s)
         ?entity skos:prefLabel ?l .
-        ?entity skos:altLabel ?s .
+        OPTIONAL {
+          ?entity skos:altLabel ?al .
+        }
       }
-      GROUP BY ?entity
-      ORDER BY DESC(?score)
+      GROUP BY ?entity ?index
+      ORDER BY ?index DESC(?score)
     '''
     longDescriptionQuery : '''
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
