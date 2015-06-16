@@ -3,44 +3,59 @@ angular.module("app").controller "MainCtrl", ($scope,$localStorage,$state,$state
   config = $localStorage.config
   if not config? then $state.go('config')
   $scope.config = config
-  $localStorage.state ?= { currentRow : 0, currentPage : 1, reconData : [] }
+  $localStorage.state ?= { currentRow : 0, currentOffset : 0, reconData : [] }
   state = $localStorage.state
   $scope.state=state
-  function curIndex
-    (state.currentPage - 1) * config.pageSize + state.currentRow
+  $scope.currentPage = state.currentOffset / config.pageSize + 1
+  hotkeys.add(
+    combo: 'tab'
+    allowIn: ['INPUT']
+    callback: (event,hotkey) !->
+      if state.currentRow==state.currentOffset+config.pageSize - 1
+        $scope.currentPage++
+        if ($scope.currentPage - 1)*config.pageSize>state.data.length then $scope.currentPage = 1
+  )
   for number in [0 to 9]
     hotkeys.add(
       combo: ''+number
       allowIn: ['INPUT']
       callback: (event,hotkey) !->
-        state.reconData[curIndex!].match=state.reconData[curIndex!].candidates[(hotkey.combo[0]-1)%10]
-        focus("row"+(state.currentRow+1))
+        state.reconData[state.currentRow].match=state.reconData[state.currentRow].candidates[(hotkey.combo[0]-1)%10]
+        if state.currentRow==state.currentOffset+config.pageSize - 1
+          $scope.currentPage++
+          if ($scope.currentPage - 1)*config.pageSize>state.data.length then $scope.currentPage = 1
+        else focus("row"+(state.currentRow+1))
         event.preventDefault!
     )
   # support functions
   !function handleError error
     $scope.error=error
-  $scope.$watch 'state.currentPage' !->
-    state.currentRow = 0
-    focus("row0")
+  $scope.$watch 'currentPage' (nv) !->
+    if !nv? then nv = 1
+    state.currentOffset = state.currentRow = (nv - 1)*config.pageSize
+    focus("row"+state.currentOffset)
   $scope.loadCSVFile = (file) !->
     if (!file) then return
     Papa.parse(file, { complete: (csv) !->
       state.data=csv.data
-      state.currentPage = 1
       state.currentRow = 0
+      state.currentOffset = 0
       state.reconData=[]
       findMatches([{index,text:state.data[index][0]} for index from 0 til config.pageSize])
       $scope.$digest!
     , error:handleError })
   canceller = void
   !function findMatches queries
-    queryText = ""
-    for q in queries then queryText+="(#{q.index} #{sparql.stringToSPARQLString(q.text)})"
+    queryParts = config.matchQuery.split(/[\{\}] # \/?QUERY/)
+    console.log(queryParts)
+    queryText=queryParts[0]
+    for q in queries
+      queryText+="{"+queryParts[1].replaceAll(/<QUERY_ID>/,q.index).replaceAll(/<QUERY>/,q.text)+"}"
+    queryText+=queryParts[2]
     if (canceller?) then canceller.resolve!
     $scope.queryRunning = true
     canceller:=$q.defer!
-    response <-! sparql.query(config.sparqlEndpoint,config.matchQuery.replace(/\(<QUERIES>\)/g,queryText,{timeout:canceller.promise})).then(_,handleError)
+    response <-! sparql.query(config.sparqlEndpoint,queryText,{timeout:canceller.promise}).then(_,handleError)
     $scope.error = void
     $scope.queryRunning = false
     candidatesHashes = []
@@ -62,5 +77,5 @@ angular.module("app").controller "MainCtrl", ($scope,$localStorage,$state,$state
   $scope.focus = (index) !->
     state.currentRow = index
   $scope.search = (index,text) !->
-    findMatches [{text,index:(state.currentPage - 1 ) * config.pageSize + index}]
+    findMatches [{text,index}]
 

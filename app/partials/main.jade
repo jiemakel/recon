@@ -3,15 +3,15 @@
     button.btn.btn-success(ngf-select,ngf-change="loadCSVFile($files[0])",ngf-multiple="false") Load CSV file
   .row
     .col-xs-3
-      pagination.pagination-sm(ng-model="state.currentPage",items-per-page="config.pageSize",max-size="6",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
+      pagination.pagination-sm(ng-model="currentPage",items-per-page="config.pageSize",max-size="6",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
       table.table.table-bordered.table-striped
-        tr(ng-repeat="row in state.data | limitTo : config.pageSize : (state.currentPage - 1) * config.pageSize"): td(ng-class="state.reconData[(state.currentPage - 1) * config.pageSize + $index].match ? 'has-success' : 'has-error'")
-          input.form-control(select-on-focus,focus-on="row{{$index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-focus="focus($index)",ng-change="search($index,input)")
+        tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.currentOffset"): td(ng-class="state.reconData[state.currentOffset + $index].match ? 'has-success' : 'has-error'")
+          input.form-control(select-on-focus,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-focus="focus(state.currentOffset + $index)",ng-change="search(state.currentOffset + $index,input)")
     .col-xs-9
       i.fa.fa-spinner.fa-spin(ng-show="queryRunning")
       | {{error}}
       table.table.table-bordered.table-striped
-        tr(ng-repeat="candidate in state.reconData[(state.currentPage - 1) * config.pageSize + state.currentRow].candidates",ng-style="{'background-color':candidate.color}")
-          th {{($index+1)%10}}
+        tr(ng-repeat="candidate in state.reconData[state.currentRow].candidates",ng-style="{'background-color':candidate.color}")
+          th {{$index+1}}
           th {{candidate.label}}
           td(ng-repeat="descr in candidate.description") {{descr}}
