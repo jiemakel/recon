@@ -5,12 +5,13 @@ angular.module("app", [
   "ngFileUpload"
   "ui.bootstrap"
   "ui.bootstrap.tpls"
+  'ab-base64'
   "http-auth-interceptor"
   'cfp.hotkeys'
   'focusOn'
 ]).config ($stateProvider, $urlRouterProvider) ->
   $stateProvider.state "home",
-    url: "/"
+    url: "/?config"
     templateUrl: "partials/main.html"
     controller: "MainCtrl"
   $stateProvider.state "config",

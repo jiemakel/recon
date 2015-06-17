@@ -11,4 +11,4 @@
   .form-group
     label Entries per page
     input.form-control(type="number",ng-model="config.pageSize")
-  button.btn.btn-success(ui-sref="home") Home
+  button.btn.btn-success(ui-sref="home({config:serialize()})") Home

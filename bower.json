@@ -14,7 +14,9 @@
     "bootstrap": "latest",
     "font-awesome": "latest",
     "angular-hotkeys": "chieffancypants/angular-hotkeys",
-    "ng-focus-on": "latest"
+    "ng-focus-on": "latest",
+    "FileSaver": "*",
+    "angular-utf8-base64": "~0.0.5"
   },
   "devDependencies": {
     "angular-mocks": "latest"

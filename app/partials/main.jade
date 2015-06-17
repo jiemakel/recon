@@ -1,17 +1,27 @@
 .container-fluid
   .row
-    button.btn.btn-success(ngf-select,ngf-change="loadCSVFile($files[0])",ngf-multiple="false") Load CSV file
+    .col-xs-12
+      button.btn.btn-small.btn-success(ngf-select,ngf-change="loadCSVFile($files[0])",ngf-multiple="false") Load
+      button.btn.btn-small.btn-warning(ng-click="saveCSVFile()") Save
   .row
     .col-xs-3
       pagination.pagination-sm(ng-model="currentPage",items-per-page="config.pageSize",max-size="6",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
       table.table.table-bordered.table-striped
         tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.currentOffset"): td(ng-class="state.reconData[state.currentOffset + $index].match ? 'has-success' : 'has-error'")
-          input.form-control(select-on-focus,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-focus="focus(state.currentOffset + $index)",ng-change="search(state.currentOffset + $index,input)")
+          input.form-control(tooltip="{{state.reconData[state.currentOffset + $index].match}}",select-on-focus,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-model-options="{debounce: 300}",ng-focus="focus(state.currentOffset + $index)",ng-change="search(state.currentOffset + $index,input)")
     .col-xs-9
       i.fa.fa-spinner.fa-spin(ng-show="queryRunning")
-      | {{error}}
+      div(ng-show="error")
+        h4 {{error.status}}
+        pre.pre-scrollable {{error.data}}
+        pre.pre-scrollable {{error.config}}
       table.table.table-bordered.table-striped
-        tr(ng-repeat="candidate in state.reconData[state.currentRow].candidates",ng-style="{'background-color':candidate.color}")
+        tr
+          td(ng-repeat="value in state.data[state.currentRow] track by $index") {{value}}
+      button.btn.btn-block.btn-warning(ng-show="!state.reconData[state.currentRow].candidates") ?
+      table.table.table-bordered.table-striped
+        tr(ng-repeat="candidate in state.reconData[state.currentRow].candidates | limitTo : 9",ng-style="{'background-color':candidate.color}")
           th {{$index+1}}
           th {{candidate.label}}
           td(ng-repeat="descr in candidate.description") {{descr}}
+      button.btn.btn-block.btn-danger(ng-show="state.reconData[state.currentRow].candidates.length==10") ...
