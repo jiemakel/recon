@@ -1,18 +1,34 @@
+script(type="text/ng-template",id="loadSPARQL")
+  .modal-header
+    h3.modal-title Load from a SPARQL endpoint
+  .modal-body
+    .form-group(ng-class="sparqlEndpointOK ? 'has-success' : 'has-error'")
+      label SPARQL endpoint
+      input.form-control(type="text",ng-model="state.sparqlEndpoint")
+    .form-group
+      label Load query
+      yasqe(data="state.loadQuery")
+      yasr
+  .modal-footer
+    button.btn.btn-success(ng-click="$close();loadSPARQL()") Ok
 .container-fluid
   .row
-    .col-xs-12
-      button.btn.btn-small.btn-success(ngf-select,ngf-change="loadCSVFile($files[0])",ngf-multiple="false") Load
-      button.btn.btn-small.btn-warning(ng-click="saveCSVFile()") Save
-  .row
     .col-xs-3
-      pagination.pagination-sm(ng-model="currentPage",items-per-page="config.pageSize",max-size="6",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
       table.table.table-bordered.table-striped
         tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.currentOffset"): td(ng-class="state.reconData[state.currentOffset + $index].match ? 'has-success' : 'has-error'")
-          input.form-control(tooltip="{{state.reconData[state.currentOffset + $index].match}}",select-on-focus,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-model-options="{debounce: 300}",ng-focus="focus(state.currentOffset + $index)",ng-change="search(state.currentOffset + $index,input)")
+          input.form-control(tooltip="{{state.reconData[state.currentOffset + $index].match}}",select-on-click,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-model-options="{debounce: 300}",ng-focus="focus(state.currentOffset + $index)",ng-change="search(state.currentOffset + $index,input)")
+      pagination.pagination-sm(ng-model="currentPage",items-per-page="config.pageSize",max-size="4",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
+      .clearfix
+        button.btn.btn-success(ngf-select,ngf-change="loadCSVFile($files[0])",ngf-multiple="false") Load CSV
+        button.btn.btn-success(ng-click="openSPARQL()") Load SPARQL
+        button.btn.btn-warning(ng-click="saveCSVFile()",ng-show="state.data") Save
+        button.btn.btn-default(ui-sref="configure()") Configure
     .col-xs-9
-      i.fa.fa-spinner.fa-spin(ng-show="queryRunning")
+      i.fa.fa-spinner.fa-spin(ng-show="queryRunning && !error")
       div(ng-show="error")
         h4 {{error.status}}
+          button.pull-right.btn.btn-xs.btn-danger(ng-click="error='';queryRunning=false") X
+        .clearfix
         pre.pre-scrollable {{error.data}}
         pre.pre-scrollable {{error.config}}
       table.table.table-bordered.table-striped
@@ -25,3 +41,5 @@
           th {{candidate.label}}
           td(ng-repeat="descr in candidate.description") {{descr}}
       button.btn.btn-block.btn-danger(ng-show="state.reconData[state.currentRow].candidates.length==10") ...
+    .row
+      .col-xs-12
