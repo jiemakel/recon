@@ -46,7 +46,7 @@ module app {
     restrict = 'A'
     constructor() {}
     link = (scope: angular.IScope, element: JQuery, attr: angular.IAttributes) => {
-//      element.on('click',function (event:FocusEvent) {this.select();event.stopPropagation();})
+      element.on('click',function (event:JQueryEventObject) {this.select();event.stopPropagation();})
     }
   }
 }
