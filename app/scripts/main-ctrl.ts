@@ -129,7 +129,11 @@ module app {
         else if (ov == 1 && nv == Math.floor(state.data.length/config.pageSize + 1)) state.currentRow = state.data.length - 1
         else state.currentRow = state.currentOffset
         focus("row"+state.currentRow)
-        //if (nv!=ov) findMatches([{index,text:state.data[index][0]} for index from state.currentOffset til (if state.currentOffset+config.pageSize > state.data.length then state.data.length else state.currentOffset+config.pageSize) when !state.reconData[index]?])
+        let fm = []
+        let til = state.currentOffset+config.pageSize
+        if (til > state.data.length) til = state.data.length
+        for (let index=state.currentOffset;index<til;index++) if (!state.reconData[index]) fm.push({index,text:state.data[index][0]})
+        findMatches(fm)
       })
       this.canceler = $q.defer()
       $scope.$watch('state.sparqlEndpoint', (nv:string,ov:string) => {
@@ -171,7 +175,11 @@ module app {
             state.currentOffset = 0
             $scope.currentPage = 1
             state.reconData=[]
-            //findMatches([{index,text:state.data[index][0]} for index from 0 til (if config.pageSize > state.data.length then state.data.length else config.pageSize)])
+            let fm = []
+            let til = state.currentOffset+config.pageSize
+            if (til > state.data.length) til = state.data.length
+            for (let index=state.currentOffset;index<til;index++) if (!state.reconData[index]) fm.push({index,text:state.data[index][0]})
+            findMatches(fm)
           }
           ,handleError
         )
@@ -203,7 +211,11 @@ module app {
           state.currentOffset = 0
           $scope.currentPage = 1
           state.reconData=[]
-          //findMatches([{index,text:state.data[index][0]} for index from 0 til (if config.pageSize > state.data.length then state.data.length else config.pageSize)])
+          let fm = []
+          let til = state.currentOffset+config.pageSize
+          if (til > state.data.length) til = state.data.length
+          for (let index=state.currentOffset;index<til;index++) if (!state.reconData[index]) fm.push({index,text:state.data[index][0]})
+          findMatches(fm)
           $scope.$digest()
         , {error:handleError} }
         })
@@ -238,7 +250,7 @@ module app {
             for (let index in candidatesHashes) {
               if (!state.reconData[index]) state.reconData[index]={match:undefined,candidates:[]}
               const candidates = []
-              for (let candidate in candidatesHashes[index]) candidates.push(candidate)
+              for (let candidate in candidatesHashes[index]) candidates.push(candidatesHashes[index][candidate])
               candidates.sort((a,b) => a.index - b.index)
               state.reconData[index].candidates = candidates
             }

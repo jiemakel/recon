@@ -36,7 +36,7 @@ script(type="text/ng-template",id="loadSPARQL")
           td(ng-repeat="value in state.data[state.currentRow] track by $index") {{value}}
       button.btn.btn-block.btn-warning(ng-show="!state.reconData[state.currentRow].candidates") ?
       table.table.table-bordered.table-striped
-        tr(ng-repeat="candidate in state.reconData[state.currentRow].candidates | limitTo : 9",ng-style="{'background-color':candidate.color}")
+        tr(ng-repeat="candidate in state.reconData[state.currentRow].candidates | limitTo : 9",ng-style="{'background-color':candidate.color}",ng-class="candidate.id==state.reconData[state.currentRow].match.id ? 'info' : ''")
           th {{$index+1}}
           th {{candidate.label}}
           td(ng-repeat="descr in candidate.description") {{descr}}
