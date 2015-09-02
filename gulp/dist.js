@@ -14,8 +14,8 @@ gulp.task('dist:partials', function() {
 });
 
 gulp.task('dist:html', ['dist:partials'], function() {
-  var jsFilter = $.filter("**/*.js");
-  var cssFilter = $.filter("**/*.css");
+  var jsFilter = $.filter("**/*.js", {restore: true});
+  var cssFilter = $.filter("**/*.css", {restore: true});
   var assets = $.useref.assets();
   return gulp.src(".tmp/*.html")
     .pipe($.plumber({ errorHandler: $.notify.onError("<%= error.stack %>") }))
@@ -36,7 +36,7 @@ gulp.task('dist:html', ['dist:partials'], function() {
     .pipe($.ngAnnotate()).pipe($.uglify({ preserveComments: uglifySaveLicense }))
     .pipe($.print(function(path) { return "dist:html-js(2) " + path; }))
     .pipe($.size({ title: 'dist:html-js(2)' }))
-    .pipe(jsFilter.restore())
+    .pipe(jsFilter.restore)
     .pipe(cssFilter)
     .pipe($.print(function(path) { return "dist:html-css(1) " + path; }))
     .pipe($.size({ title: 'dist:html-css(1)' }))
@@ -45,7 +45,7 @@ gulp.task('dist:html', ['dist:partials'], function() {
     .pipe($.minifyCss({ processImport: false }))
     .pipe($.print(function(path) { return "dist:html-css(2) " + path; }))
     .pipe($.size({ title: 'dist:html-css(2)' }))
-    .pipe(cssFilter.restore())
+    .pipe(cssFilter.restore)
     .pipe(assets.restore())
     .pipe($.useref())
     .pipe($.revReplace())
