@@ -33,6 +33,10 @@ module app {
     currentOffset : number
     reconData : IReconData[]
     data : string[][]
+    counts : {
+      match: number
+      nomatch : number
+    }
   }
 
   export interface IReconData {

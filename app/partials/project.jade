@@ -15,9 +15,13 @@ script(type="text/ng-template",id="loadSPARQL")
   .row
     .col-xs-3
       table.table.table-bordered.table-striped
-        tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.currentOffset"): td(ng-class="state.reconData[state.currentOffset + $index].match ? 'has-success' : 'has-error'")
+        tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.currentOffset"): td(ng-class="state.reconData[state.currentOffset + $index].match ? 'has-success' : (state.reconData[state.currentOffset + $index].match === null ? 'has-warning' : 'has-error')")
           input.form-control(tooltip="{{state.reconData[state.currentOffset + $index].match}}",select-on-click,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-model-options="{debounce: 300}",ng-focus="focus(state.currentOffset + $index)",ng-change="search(state.currentOffset + $index,input)")
       pagination.pagination-sm(ng-model="currentPage",items-per-page="config.pageSize",max-size="4",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
+      progress
+        bar(type="success",value="100 * state.counts.match / state.data.length") {{state.counts.match}}
+        bar(type="warning",value="100 * state.counts.nomatch / state.data.length") {{state.counts.nomatch}}
+        &nbsp;{{state.data.length - state.counts.match - state.counts.nomatch}}
       .clearfix
         button.btn.btn-success(ngf-select,ngf-change="loadCSVFile($files[0])",ngf-multiple="false") Load CSV
         button.btn.btn-success(ng-click="openSPARQL()") Load SPARQL

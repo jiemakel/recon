@@ -58,7 +58,11 @@ module app {
         data : [],
         sparqlEndpoint : undefined,
         loadQuery : undefined,
-        fileName : undefined
+        fileName : undefined,
+        counts : {
+          match : 0,
+          nomatch : 0
+        }
       }
       var state = $localStorage.projects[$stateParams.projectId].state
       $scope.state=state
@@ -87,7 +91,9 @@ module app {
         combo: '0',
         allowIn: ['INPUT'],
         callback: (event:Event,hotkey:angular.hotkeys.Hotkey) => {
-          state.reconData[state.currentRow].match=undefined
+          if (state.reconData[state.currentRow].match) state.counts.match--
+          state.counts.nomatch++
+          state.reconData[state.currentRow].match=null
           if (state.currentRow==state.currentOffset+config.pageSize - 1) {
             $scope.currentPage++
             if (($scope.currentPage - 1)*config.pageSize>state.data.length) $scope.currentPage = 1
@@ -99,7 +105,12 @@ module app {
         combo: ''+number,
         allowIn: ['INPUT'],
         callback: (event:Event,hotkey:angular.hotkeys.Hotkey) => {
+          if (!state.reconData[state.currentRow].match) {
+            state.counts.match++
+            if (state.reconData[state.currentRow].match===null) state.counts.nomatch--
+          }
           state.reconData[state.currentRow].match=state.reconData[state.currentRow].candidates[(parseInt(hotkey.combo[0])-1)]
+
           if (state.currentRow==state.currentOffset+config.pageSize - 1) {
             $scope.currentPage++
             if (($scope.currentPage - 1)*config.pageSize>state.data.length) $scope.currentPage = 1
@@ -196,6 +207,10 @@ module app {
           state.data=csv.data
           state.currentRow = 0
           state.currentOffset = 0
+          state.counts = {
+            match : 0,
+            nomatch : 0
+          }
           $scope.currentPage = 1
           state.reconData=[]
           let fm = []

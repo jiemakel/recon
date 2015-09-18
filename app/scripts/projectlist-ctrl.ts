@@ -1,7 +1,17 @@
 module app {
   interface IProjectListScope extends angular.IScope {
-    projects: string[]
+    projects: ProjectInfo[]
     newProject : (projectId:string) => void
+  }
+
+  class ProjectInfo {
+    constructor(
+    public name : string,
+    public total : number,
+    public counts : {
+      match : number
+      nomatch : number
+    }) {}
   }
 
   export class ProjectListController {
@@ -10,7 +20,8 @@ module app {
                 $state : angular.ui.IStateService,$localStorage : IProjectStorage) {
         if (!$localStorage.projects) $localStorage.projects = {}
         $scope.projects = []
-        for (let project in $localStorage.projects) $scope.projects.push(project);
+        for (let project in $localStorage.projects)
+          $scope.projects.push(new ProjectInfo(project,$localStorage.projects[project].state.data.length,$localStorage.projects[project].state.counts))
         $scope.newProject = (projectId:string) => { $state.go('project',{projectId:projectId})}
     }
   }
