@@ -1,6 +1,7 @@
 module app {
-  interface IMainScope extends angular.IScope {
+  interface IProjectScope extends angular.IScope {
     config:IConfiguration
+    projectId : string
     state:IState
     currentPage : number
     error : string
@@ -14,31 +15,9 @@ module app {
     queryRunning : boolean
   }
 
-  interface IState {
-    sparqlEndpoint : string,
-    loadQuery : string,
-    fileName : string,
-    currentRow : number,
-    currentOffset : number,
-    reconData : IReconData[]
-    data : string[][]
-  }
-
-  interface IReconData {
-    match: {
-      id:string
-    }
-    candidates : {
-      id:string
-    }[]
-  }
-
-  interface IStateAndConfigStorage extends IConfigStorage {
-    state : IState
-  }
-
   interface IParams {
     config : string
+    projectId : string
   }
 
   interface IQuery {
@@ -46,11 +25,11 @@ module app {
     text : string
   }
 
-  export class MainController {
+  export class ProjectController {
 
     private canceler : angular.IDeferred<{}>
-    constructor($scope: IMainScope,
-                $localStorage : IStateAndConfigStorage,
+    constructor($scope: IProjectScope,
+                $localStorage : IProjectStorage,
                 $state : angular.ui.IStateService,
                 $stateParams : IParams,
                 $q:angular.IQService,
@@ -60,11 +39,19 @@ module app {
                 focus:any,
                 base64:IBase64Service) {
       // initialization
-      if ($stateParams.config) $localStorage.config = JSON.parse(base64.urldecode($stateParams.config))
-      var config = $localStorage.config
-      if (!config) $state.go('configure')
+      $scope.projectId = $stateParams.projectId
+      if (!$localStorage.projects) $localStorage.projects = {}
+      if (!$localStorage.projects[$stateParams.projectId]) $localStorage.projects[$stateParams.projectId]={
+        config : null,
+        state : null
+      }
+      var config = $localStorage.projects[$stateParams.projectId].config
+      if (!config) {
+        $state.go('configure',{projectId:$stateParams.projectId})
+        return
+      }
       $scope.config = config
-      if (!$localStorage.state) $localStorage.state = {
+      if (!$localStorage.projects[$stateParams.projectId].state) $localStorage.projects[$stateParams.projectId].state = {
         currentRow : 0,
         currentOffset : 0,
         reconData : [],
@@ -73,10 +60,10 @@ module app {
         loadQuery : undefined,
         fileName : undefined
       }
-      var state = $localStorage.state
+      var state = $localStorage.projects[$stateParams.projectId].state
       $scope.state=state
       $scope.currentPage = state.currentOffset / config.pageSize + 1
-      hotkeys.add({
+      hotkeys.bindTo($scope).add({
         combo: 'shift+tab',
         allowIn: ['INPUT'],
         callback: (event:Event,hotkey:angular.hotkeys.Hotkey) => {
@@ -86,7 +73,7 @@ module app {
           }
         }
       })
-      hotkeys.add({
+      hotkeys.bindTo($scope).add({
         combo: 'tab',
         allowIn: ['INPUT'],
         callback: (event:Event,hotkey:angular.hotkeys.Hotkey) => {
@@ -96,7 +83,7 @@ module app {
           }
         }
       })
-      hotkeys.add({
+      hotkeys.bindTo($scope).add({
         combo: '0',
         allowIn: ['INPUT'],
         callback: (event:Event,hotkey:angular.hotkeys.Hotkey) => {
@@ -108,7 +95,7 @@ module app {
           event.preventDefault()
         }
       })
-      for (let number=1;number<10;number++) hotkeys.add({
+      for (let number=1;number<10;number++) hotkeys.bindTo($scope).add({
         combo: ''+number,
         allowIn: ['INPUT'],
         callback: (event:Event,hotkey:angular.hotkeys.Hotkey) => {

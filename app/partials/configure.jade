@@ -8,4 +8,11 @@
   .form-group
     label Entries per page
     input.form-control(type="number",ng-model="config.pageSize")
-  button.btn.btn-success(ui-sref="home({config:serialize()})") Home
+  .form-group
+    button.btn.btn-success(ui-sref="project({projectId:projectId})") Return to project
+  .form-group
+    button.btn.btn-warning(ngf-select,ngf-change="importProject($files[0])",ngf-multiple="false") Import project
+    button.btn.btn-warning(ng-click="exportProject()") Export project
+  .form-group
+    button.btn.btn-danger(ng-click="deleteData()",ng-show="state.data.length>0") Delete project data ({{state.data.length}} rows)
+    button.btn.btn-danger(ng-click="deleteProject()") Delete project

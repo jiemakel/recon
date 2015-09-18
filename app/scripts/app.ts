@@ -13,16 +13,21 @@ module app {
   var m = angular.module("app", [ "ui.router", "ngStorage", "ngFileUpload", "ui.bootstrap", "ui.bootstrap.tpls", "ab-base64", "http-auth-interceptor", "cfp.hotkeys", "focusOn" ])
   m.config(($stateProvider : angular.ui.IStateProvider,$urlRouterProvider : angular.ui.IUrlRouterProvider) => {
     $urlRouterProvider.otherwise('/')
-    $stateProvider.state('home', {
-      url: '/?config',
-      templateUrl: 'partials/main.html',
-      controller: 'MainController'
-      })
+    $stateProvider.state('projectlist', {
+      url: '/',
+      templateUrl: 'partials/projectlist.html',
+      controller: 'ProjectListController'
+    })
+    $stateProvider.state('project', {
+      url: '/:projectId/',
+      templateUrl: 'partials/project.html',
+      controller: 'ProjectController'
+    })
     $stateProvider.state('configure',{
-      url : '/configure',
+      url : '/:projectId/configure',
       templateUrl: 'partials/configure.html',
       controller : 'ConfigureController'
-      })
+    })
   })
   m.run(($rootScope : IAuthenticationRootScopeService, $http : angular.IHttpService, authService : angular.httpAuth.IAuthService) => {
     $rootScope.authInfo = {

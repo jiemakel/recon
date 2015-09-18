@@ -21,8 +21,8 @@ script(type="text/ng-template",id="loadSPARQL")
       .clearfix
         button.btn.btn-success(ngf-select,ngf-change="loadCSVFile($files[0])",ngf-multiple="false") Load CSV
         button.btn.btn-success(ng-click="openSPARQL()") Load SPARQL
-        button.btn.btn-warning(ng-click="saveCSVFile()",ng-show="state.data") Save
-        button.btn.btn-default(ui-sref="configure()") Configure
+        button.btn.btn-warning(ng-click="saveCSVFile()",ng-show="state.data.length>0") Export CSV
+        button.btn.btn-default(ui-sref="configure({projectId:projectId})") Configure
     .col-xs-9
       i.fa.fa-spinner.fa-spin(ng-show="queryRunning && !error")
       div(ng-show="error")

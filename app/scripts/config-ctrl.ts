@@ -1,18 +1,47 @@
 module app {
   export interface IConfigureScope extends angular.IScope {
+    serializedConfiguration : string
     config : IConfiguration
+    state : IState
     sparqlEndpointOK : boolean
     serialize : () => string
+    deleteProject : () => void
+    importProject : (File) => void
+    exportProject : () => void
+    deleteData : () => void
+    projectId : string
   }
 
   export interface IConfiguration {
-    sparqlEndpoint : string,
-    pageSize : number,
+    sparqlEndpoint : string
+    pageSize : number
     matchQuery : string
   }
 
-  export interface IConfigStorage {
-    config : IConfiguration
+  export interface IProjectStorage {
+    projects : { [id: string] : {
+      config:IConfiguration
+      state:IState
+    } }
+  }
+
+  export interface IState {
+    sparqlEndpoint : string
+    loadQuery : string
+    fileName : string
+    currentRow : number
+    currentOffset : number
+    reconData : IReconData[]
+    data : string[][]
+  }
+
+  export interface IReconData {
+    match: {
+      id:string
+    }
+    candidates : {
+      id:string
+    }[]
   }
 
   export interface IBase64Service {
@@ -20,11 +49,16 @@ module app {
     urldecode : (str : string) => string
   }
 
+  interface IParams {
+    projectId : string
+  }
+
   export class ConfigureController {
 
     private canceler : angular.IDeferred<{}>
-    constructor($scope: IConfigureScope,$localStorage:IConfigStorage,$q:angular.IQService,sparqlService:SparqlService,base64:IBase64Service) {
-      if (!$localStorage.config) $localStorage.config = {
+    constructor($scope: IConfigureScope,$localStorage:IProjectStorage,$stateParams : IParams,$state:angular.ui.IStateService,$q:angular.IQService,sparqlService:SparqlService,base64:IBase64Service) {
+      $scope.projectId = $stateParams.projectId
+      if (!$localStorage.projects[$stateParams.projectId].config) $localStorage.projects[$stateParams.projectId].config = {
         sparqlEndpoint : 'http://ldf.fi/emlo/sparql',
         pageSize : 15,
         matchQuery : `
@@ -64,9 +98,36 @@ module app {
           ORDER BY ?queryId DESC(?score)
         `
       }
-      $scope.config = $localStorage.config
-      $scope.serialize = () => base64.urlencode(JSON.stringify($localStorage.config))
+      $scope.config = $localStorage.projects[$stateParams.projectId].config
+      $scope.state = $localStorage.projects[$stateParams.projectId].state
       this.canceler = $q.defer()
+      $scope.importProject = (file:File) => {
+        var reader = new FileReader()
+        reader.onload = () => {
+          $localStorage.projects[$stateParams.projectId] = JSON.parse(reader.result)
+          $scope.config = $localStorage.projects[$stateParams.projectId].config
+          $scope.state = $localStorage.projects[$stateParams.projectId].state
+          $scope.$digest()
+        }
+        reader.readAsText(file)
+      }
+      $scope.deleteProject = () => {
+        delete $localStorage.projects[$stateParams.projectId]
+        $state.go('projectlist')
+      }
+      $scope.exportProject = () => {
+        saveAs(new Blob([JSON.stringify($localStorage.projects[$stateParams.projectId])], {type : 'application/json'}),$stateParams.projectId+".json")
+      }
+      $scope.deleteData = () => {
+        $localStorage.projects[$stateParams.projectId].state = null
+        $scope.state = null
+      }
+      $scope.$watch('config',() => {
+        $scope.serializedConfiguration = base64.urlencode(JSON.stringify($scope.config))
+      },true)
+      $scope.$watch('serializedConfiguration',(nv:string,ov:string) => {
+        if (nv!=ov && nv!="") $scope.config = JSON.parse(base64.urldecode(nv))
+      })
       $scope.$watch('config.sparqlEndpoint',(nv:string,ov:string) => {
         if (nv) {
           this.canceler.resolve()

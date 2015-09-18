@@ -1,0 +1,7 @@
+.container
+  h3 Projects:
+  ul
+    li(ng-repeat="projectId in projects"): a(ui-sref="project({projectId:projectId})") {{projectId}}
+    li: form(ng-submit="newProject(newProjectId)")
+      input(type="text",ng-model="newProjectId")
+  

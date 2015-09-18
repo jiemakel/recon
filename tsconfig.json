@@ -12,7 +12,8 @@
     "files": [
         "app/scripts/app.ts",
         "app/scripts/config-ctrl.ts",
-        "app/scripts/main-ctrl.ts",
+        "app/scripts/project-ctrl.ts",
+        "app/scripts/projectlist-ctrl.ts",
         "app/scripts/sparql-service.ts",
         "app/scripts/yasqe-directive.ts",
         "typings/FileSaver/FileSaver.d.ts",
