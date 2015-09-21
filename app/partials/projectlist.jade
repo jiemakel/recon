@@ -5,7 +5,7 @@
     .col-xs-4: progress(style="margin-bottom:0px")
         bar(type="success",value="100 * project.counts.match / project.total") {{project.counts.match}}
         bar(type="warning",value="100 * project.counts.nomatch / project.total") {{project.counts.nomatch}}
-        &nbsp;{{project.total - project.counts.match - project.counts.nomatch}}
+        | &nbsp;{{project.total - project.counts.match - project.counts.nomatch}}
   .row: .col-xs-12: ul: li: form.form-inline(ng-submit="newProject(newProjectId)")
       input.form-control(type="text",ng-model="newProjectId")
   

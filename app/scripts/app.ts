@@ -47,11 +47,12 @@ module app {
     $rootScope.$on('event:auth-loginRequired',() => $rootScope.authInfo.authOpen=true)
   })
 
-  export class SelectOnClickDirective {
+  export class SelectOnFocusDirective {
     restrict = 'A'
     constructor() {}
     link = (scope: angular.IScope, element: JQuery, attr: angular.IAttributes) => {
-      element.on('click',function (event:JQueryEventObject) {this.select();event.stopPropagation();})
+      element.on('mouseup',function (event:JQueryEventObject) {event.preventDefault();})
+      element.on('focus',function (event:JQueryEventObject) {this.select();})
     }
   }
 }

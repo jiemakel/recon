@@ -1,6 +1,5 @@
 module app {
   export interface IConfigureScope extends angular.IScope {
-    serializedConfiguration : string
     config : IConfiguration
     state : IState
     sparqlEndpointOK : boolean
@@ -72,17 +71,17 @@ module app {
           PREFIX pf: <http://jena.hpl.hp.com/ARQ/property#>
           PREFIX sf: <http://ldf.fi/similarity-functions#>
           PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
-          SELECT ?queryId ?entity (SAMPLE(?l) AS ?label)  (GROUP_CONCAT(DISTINCT ?al;separator=", ") AS ?alabel) (SAMPLE(?sc) AS ?score) {
+          SELECT ?queryId ?entity (SAMPLE(?l) AS ?label)  (GROUP_CONCAT(DISTINCT ?al;separator=", ") AS ?alabel) (SAMPLE(?sc) AS ?score) (SAMPLE(?url) AS ?link) {
             { # QUERY
               {
                 SELECT ?e (SUM(?s)/COUNT(?s) AS ?sc) {
                   {
                     SELECT ?e {
-                      BIND(CONCAT(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(<QUERY>,"([\\\\+\\\\-\\\\&\\\\|\\\\!\\\\(\\\\)\\\\{\\\\}\\\\[\\\\]\\\\^\\\\\\"\\\\~\\\\*\\\\?\\\\:\\\\\\\\])","\\\\\\\\$1"),"^ +| +$", ""),",",""),"\\\\. ","* "),"([^*]) ","$1~0.8 "),"~0.8") AS ?queryTerm)
+                      BIND(CONCAT(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(<QUERY>,"([\\\\+\\\\-\\\\&\\\\|\\\\!\\\\(\\\\)\\\\{\\\\}\\\\[\\\\]\\\\^\\\\\\"\\\\~\\\\*\\\\?\\\\:\\\\\\\\])","\\\\\\\\$1"),"^ +| +$", ""),",",""),"\\\\. ","* "),"([^*]) +","$1~0.8 "),"~0.8") AS ?queryTerm)
                       ?e text:query ?queryTerm .
                       ?e a crm:E21_Person .
                     }
-                    LIMIT 10
+                    LIMIT 30
                   }
                   ?e rdfs:label|skos:prefLabel|skos:altLabel ?mlabel .
                   ?str pf:strSplit (<QUERY> " ")
@@ -97,6 +96,7 @@ module app {
             OPTIONAL {
               ?e skos:altLabel ?al .
             }
+            BIND(CONCAT('<a href="https://emlo-edit.bodleian.ox.ac.uk/interface/union.php?class_name=person&method_name=one_person_search_results&iperson_id=',?entity,'&opening_method=db_search_results" target="_blank">[o]</a>') AS ?url)
           }
           GROUP BY ?queryId ?entity
           ORDER BY ?queryId DESC(?score)
@@ -126,12 +126,6 @@ module app {
         $localStorage.projects[$stateParams.projectId].state = null
         $scope.state = null
       }
-      $scope.$watch('config',() => {
-        $scope.serializedConfiguration = base64.urlencode(JSON.stringify($scope.config))
-      },true)
-      $scope.$watch('serializedConfiguration',(nv:string,ov:string) => {
-        if (nv!=ov && nv!="") $scope.config = JSON.parse(base64.urldecode(nv))
-      })
       $scope.$watch('config.sparqlEndpoint',(nv:string,ov:string) => {
         if (nv) {
           this.canceler.resolve()

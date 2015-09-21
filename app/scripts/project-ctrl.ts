@@ -10,7 +10,8 @@ module app {
     loadSPARQL : () => void
     loadCSVFile : (file:File) => void
     saveCSVFile : () => void
-    focus : (index:number) => void
+    select : (index:number) => void
+    focus : (index:number,text:string) => void
     search : (index:number,text:string) => void
     queryRunning : boolean
   }
@@ -36,6 +37,7 @@ module app {
                 sparqlService:SparqlService,
                 hotkeys:angular.hotkeys.HotkeysProvider,
                 $modal:angular.ui.bootstrap.IModalService,
+                $sce:angular.ISCEService,
                 focus:any,
                 base64:IBase64Service) {
       // initialization
@@ -91,6 +93,10 @@ module app {
         combo: '0',
         allowIn: ['INPUT'],
         callback: (event:Event,hotkey:angular.hotkeys.Hotkey) => {
+          if (!state.reconData[state.currentRow]) state.reconData[state.currentRow]={
+            match:undefined,
+            candidates:[]
+          }
           if (state.reconData[state.currentRow].match) state.counts.match--
           state.counts.nomatch++
           state.reconData[state.currentRow].match=null
@@ -223,16 +229,24 @@ module app {
         })
       }
       var findMatches = (queries : IQuery[]) => {
+        queries = queries.filter((q :IQuery) => q.text!="")
         if (queries.length==0) return
         const queryParts = config.matchQuery.split(/[\{\}] # \/?QUERY/)
         let queryText=queryParts[0]
-        queries.forEach(q =>queryText+="{"+queryParts[1].replace(/<QUERY_ID>/g,""+q.index).replace(/<QUERY>/g,sparqlService.stringToSPARQLString(q.text))+"} UNION")
+        queries.forEach((q: IQuery) => {
+          let currentQuery = queryParts[1].replace(/<QUERY_ID>/g,""+q.index).replace(/<QUERY>/g,sparqlService.stringToSPARQLString(q.text))
+          state.data[q.index].forEach((value:string,index:number) => {
+            currentQuery = currentQuery.replace(new RegExp("<CELL_"+index+">","g"),sparqlService.stringToSPARQLString(value))
+          })
+          queryText+="{"+currentQuery+"} UNION"
+        })
         queryText=queryText.substring(0,queryText.length-6)+queryParts[2]
         this.canceler.resolve()
         $scope.queryRunning = true
         this.canceler=$q.defer()
         sparqlService.query(config.sparqlEndpoint,queryText,{timeout:this.canceler.promise}).then(
           (response : angular.IHttpPromiseCallbackArg<ISparqlBindingResult>) => {
+            queries.forEach((q:IQuery) => { if (state.reconData[q.index]) delete state.reconData[q.index].candidates})
             $scope.error = undefined
             $scope.queryRunning = false
             const candidatesHashes = {}
@@ -247,7 +261,7 @@ module app {
                 description:[]
               }
               for (let pname in binding) if (pname!='queryId' && pname!='entity' && pname!='label' && pname!='score')
-                candidatesHash[binding['entity'].value].description.push(binding[pname].value)
+                candidatesHash[binding['entity'].value].description.push($sce.trustAsHtml(binding[pname].value))
             })
             for (let index in candidatesHashes) {
               if (!state.reconData[index]) state.reconData[index]={match:undefined,candidates:[]}
@@ -260,7 +274,22 @@ module app {
           ,handleError
         )
       }
-      $scope.focus = (index) => state.currentRow = index
+      $scope.select = (index) => {
+        if (!state.reconData[state.currentRow].match) {
+          state.counts.match++
+          if (state.reconData[state.currentRow].match===null) state.counts.nomatch--
+        }
+        state.reconData[state.currentRow].match=state.reconData[state.currentRow].candidates[index]
+
+        if (state.currentRow==state.currentOffset+config.pageSize - 1) {
+          $scope.currentPage++
+          if (($scope.currentPage - 1)*config.pageSize>state.data.length) $scope.currentPage = 1
+        } else focus("row"+(state.currentRow+1))
+      }
+      $scope.focus = (index,text) => {
+        state.currentRow = index
+//        if (!state.reconData[index] || !state.reconData[index].candidates || state.reconData[index].candidates.length==0) findMatches([{text,index}])
+      }
       $scope.search = (index,text) => findMatches([{text,index}])
     }
   }
