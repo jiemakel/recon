@@ -71,6 +71,7 @@ module app {
           PREFIX pf: <http://jena.hpl.hp.com/ARQ/property#>
           PREFIX sf: <http://ldf.fi/similarity-functions#>
           PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
+          PREFIX emlos: <http://emlo.bodleian.ox.ac.uk/schema#>
           SELECT ?queryId ?entity (SAMPLE(?l) AS ?label)  (GROUP_CONCAT(DISTINCT ?al;separator=", ") AS ?alabel) (SAMPLE(?sc) AS ?score) (SAMPLE(?url) AS ?link) {
             { # QUERY
               {
@@ -92,7 +93,10 @@ module app {
               FILTER(BOUND(?e))
             } # /QUERY
             ?e skos:prefLabel ?l .
-            ?e <http://emlo.bodleian.ox.ac.uk/schema#ipersonId> ?entity .
+            ?e emlos:ipersonId ?entity .
+            OPTIONAL {
+              ?e ((^emlos:cofk_union_relationship_type-was_addressed_to/emlos:cofk_union_relationship_type-was_sent_to)|(emlos:cofk_union_relationship_type-created/emlos:cofk_union_relationship_type-was_sent_from))/skos:prefLabel ?pl .
+            }
             OPTIONAL {
               ?e skos:altLabel ?al .
             }
