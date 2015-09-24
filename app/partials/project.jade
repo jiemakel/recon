@@ -44,7 +44,7 @@ script(type="text/ng-template",id="loadSPARQL")
           th(ng-if="$index<9",ng-click="select($index)",style="cursor:pointer") {{$index+1}}
           th(ng-if="$index>=9",ng-click="select($index)",style="cursor:pointer") -
           th(ng-click="select($index)",style="cursor:pointer") {{candidate.label}}
-          td(ng-repeat="descr in candidate.description",ng-bind-html="descr")
+          td(ng-repeat="descr in candidate.description track by $index",ng-bind-html="$sce.trustAsHtml(descr)")
       button.btn.btn-block.btn-danger(ng-show="state.reconData[state.currentRow].candidates.length==30") ...
     .row
       .col-xs-12

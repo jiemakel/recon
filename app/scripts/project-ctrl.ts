@@ -14,6 +14,7 @@ module app {
     focus : (index:number,text:string) => void
     search : (index:number,text:string) => void
     queryRunning : boolean
+    $sce:angular.ISCEService
   }
 
   interface IParams {
@@ -228,6 +229,7 @@ module app {
         , {error:handleError} }
         })
       }
+      var lastMultifetchFailed = false
       var findMatches = (queries : IQuery[]) => {
         queries = queries.filter((q :IQuery) => q.text!="")
         if (queries.length==0) return
@@ -244,8 +246,10 @@ module app {
         this.canceler.resolve()
         $scope.queryRunning = true
         this.canceler=$q.defer()
+        $scope.$sce=$sce
         sparqlService.query(config.sparqlEndpoint,queryText,{timeout:this.canceler.promise}).then(
           (response : angular.IHttpPromiseCallbackArg<ISparqlBindingResult>) => {
+            if (queries.length>1) lastMultifetchFailed = false
             queries.forEach((q:IQuery) => { if (state.reconData[q.index]) delete state.reconData[q.index].candidates})
             $scope.error = undefined
             $scope.queryRunning = false
@@ -260,8 +264,7 @@ module app {
                 color:'rgb(127,'+Math.floor(127+parseFloat(binding['score'].value)*127)+',127)',
                 description:[]
               }
-              for (let pname in binding) if (pname!='queryId' && pname!='entity' && pname!='label' && pname!='score')
-                candidatesHash[binding['entity'].value].description.push($sce.trustAsHtml(binding[pname].value))
+              response.data.head.vars.filter(pname=>pname!='queryId' && pname!='entity' && pname!='label' && pname!='score').forEach(pname=> candidatesHash[binding['entity'].value].description.push(binding[pname] ? binding[pname].value : ""))
             })
             for (let index in candidatesHashes) {
               if (!state.reconData[index]) state.reconData[index]={match:undefined,candidates:[]}
@@ -271,7 +274,12 @@ module app {
               state.reconData[index].candidates = candidates
             }
           }
-          ,handleError
+          , (response : angular.IHttpPromiseCallbackArg<string>) => {
+            if (queries.length>1) {
+              lastMultifetchFailed = true
+              findMatches([{text:state.data[state.currentRow][0],index:state.currentRow}])
+            } else handleError(response)
+          }
         )
       }
       $scope.select = (index) => {
@@ -288,7 +296,7 @@ module app {
       }
       $scope.focus = (index,text) => {
         state.currentRow = index
-//        if (!state.reconData[index] || !state.reconData[index].candidates || state.reconData[index].candidates.length==0) findMatches([{text,index}])
+        if (lastMultifetchFailed && (!state.reconData[index] || !state.reconData[index].candidates || state.reconData[index].candidates.length==0)) findMatches([{text,index}])
       }
       $scope.search = (index,text) => findMatches([{text,index}])
     }
