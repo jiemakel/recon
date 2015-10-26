@@ -16,14 +16,15 @@
         "app/scripts/projectlist-ctrl.ts",
         "app/scripts/sparql-service.ts",
         "app/scripts/yasqe-directive.ts",
-        "typings/FileSaver/FileSaver.d.ts",
         "typings/angular-hotkeys/angular-hotkeys.d.ts",
         "typings/angular-http-auth/angular-http-auth.d.ts",
         "typings/angular-ui-bootstrap/angular-ui-bootstrap.d.ts",
         "typings/angular-ui-router/angular-ui-router.d.ts",
         "typings/angularjs/angular.d.ts",
+        "typings/FileSaver/FileSaver.d.ts",
         "typings/jquery/jquery.d.ts",
         "typings/papaparse/papaparse.d.ts",
         "typings/tsd.d.ts"
-    ]
+    ],
+    "exclude": []
 }

@@ -86,6 +86,7 @@ SELECT ?queryId ?entity ?label ?score {
       $scope.state = $localStorage.projects[$stateParams.projectId].state
       this.canceler = $q.defer()
       $scope.importProject = (file:File) => {
+        if (!file) return
         var reader = new FileReader()
         reader.onload = () => {
           $localStorage.projects[$stateParams.projectId] = JSON.parse(reader.result)
