@@ -42,3 +42,115 @@ All the data of a project resides in the local storage of the web browser used. 
 Once a project has been completely reconciled (or at any time in between), its reconciliation data can be exported from the project by clicking on the **Export CSV** button on the main project page. This will download the project data as a CSV file with the reconciliation database ids occupying the second column.
 
 If desired, the project can then be deleted from the configuration view by clicking on **Delete project**, or reused for another dataset by just loading new data into it.
+
+## Configuring a new reconciliation endpoint into Recon 
+
+(not for end-users, only for those needing to do so)
+
+A Recon endpoint configuration consists of a SPARQL endpoint and a match query template. Two quite complete examples of such configurations are given in the examples folder of the project, and repeated here:
+
+### EMLO places
+
+This configuration is used by the EMLO project to strongly identify places. The complete query template is as follows:
+
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX text: <http://jena.apache.org/text#>
+    PREFIX pf: <http://jena.hpl.hp.com/ARQ/property#>
+    PREFIX sf: <http://ldf.fi/similarity-functions#>
+    PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
+    PREFIX emlos: <http://emlo.bodleian.ox.ac.uk/schema#>
+    SELECT ?queryId ?entity (SAMPLE(?l) AS ?label)  (GROUP_CONCAT(DISTINCT ?al;separator=", ") AS ?alabel) (SAMPLE(?sc) AS ?score) (SAMPLE(?url) AS ?link) {
+      { # QUERY
+        {
+          SELECT ?e (SUM(?s)/COUNT(?s) AS ?sc) {
+            {
+              SELECT ?e {
+                BIND(REPLACE(REPLACE(REPLACE(REPLACE(<QUERY>,"([\\+\\-\\&\\|\\!\\(\\)\\{\\}\\[\\]\\^\\\"\\~\\*\\?\\:\\\\])","\\\\$1"),"^ +| +$", ""),", *"," "),"\\. ","* ") AS ?escapedQuery)
+                BIND(CONCAT("(",?escapedQuery,") OR (",REPLACE(?escapedQuery,"([^*]) +","$1~ "),"~)") AS ?queryTerm)
+                ?e text:query ?queryTerm .
+                ?e a/rdfs:subClassOf* crm:E53_Place .
+              }
+              LIMIT 30
+            }
+            ?e rdfs:label|skos:prefLabel|skos:altLabel ?mlabel .
+            ?str pf:strSplit (<QUERY> " ")
+            BIND(sf:levenshteinSubstring(?str,STR(?mlabel)) AS ?s)
+          } GROUP BY ?e
+        }
+        BIND(<QUERY_ID> AS ?queryId)
+        FILTER(BOUND(?e))
+      } # /QUERY
+      ?e rdfs:label ?l .
+      ?e emlos:placeId ?entity .
+      OPTIONAL {
+        ?e skos:altLabel ?al .
+      }
+      BIND(CONCAT('<a href="https://emlo-edit.bodleian.ox.ac.uk/interface/union.php?class_name=location&method_name=one_location_search_results&location_id=',?entity,'&opening_method=db_search_results" target="_blank">[o]</a>') AS ?url)
+    }
+    GROUP BY ?queryId ?entity
+    ORDER BY ?queryId DESC(?score)
+        
+Here, the lines between `# QUERY` and `# /QUERY` are the part that is responsible for discovering matches. In actually issuing the query, Recon duplicates this part for each of the dataset entries on a particular page inside UNION clauses. Recon uses the assignment `BIND(<QUERY_ID> AS ?queryId)` to differentiate between these queries in the response.
+
+In this example, the matching is made based on a [Jena text query](https://jena.apache.org/documentation/query/text-query.html). Being based on Lucene, jena-text uses its [query syntax](https://lucene.apache.org/core/5_3_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#Overview). This in turn necessitates the first complex replace operation, which escapes all special characters Lucene would otherwise interpret as query instructions. After this, further processing is done to better handle names of the form `Oxford, Oxfordshire, Eng.`. Finally, the whole query is replicated as a fuzzy query in order to guarantee that all possibly relevant matches are indeed returned.
+
+Upon receiving a match from Lucene, the matches are scored not on the Lucene TF-IDF score, but on a more applicable custom Levenshtein sub-string measure. 
+
+Outside the core query selection block, additional information pertaining to the matched entities is gathered. Here, these include the primary and alternate labels for the place, as well as a link to view the place in the primary EMLO editor interface (this also shows how the results returned can contain arbitrary HTML). Any additional information desired can be gathered just by adding new variables to the `SELECT` clause. 
+
+### EMLO people
+
+This configuration is used by the EMLO project to strongly identify people. The complete query template is as follows:
+
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX text: <http://jena.apache.org/text#>
+    PREFIX pf: <http://jena.hpl.hp.com/ARQ/property#>
+    PREFIX sf: <http://ldf.fi/similarity-functions#>
+    PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
+    PREFIX emlos: <http://emlo.bodleian.ox.ac.uk/schema#>
+    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+    SELECT ?queryId ?entity (SAMPLE(?l) AS ?label)  (GROUP_CONCAT(DISTINCT ?al;separator=", ") AS ?alabel) (CONCAT(MAX(?bwarning),MAX(?dwarning)) AS ?warning) (GROUP_CONCAT(DISTINCT ?pl;separator=", ") AS ?plabel) (MAX(?sc) AS ?score) (SAMPLE(?url) AS ?link) {
+      { # QUERY
+        {
+          SELECT ?e ?mlabel (SUM(?s)/COUNT(?s) AS ?sc) {
+            {
+              SELECT ?e {
+                BIND(REPLACE(REPLACE(REPLACE(REPLACE(<QUERY>,"([\\+\\-\\&\\|\\!\\(\\)\\{\\}\\[\\]\\/\\^\\\"\\~\\*\\?\\:\\\\])","\\\\$1"),"^ +| +$", ""),", *"," "),"\\. ","* ") AS ?escapedQuery)
+                BIND(CONCAT("(",?escapedQuery,") OR (",REPLACE(?escapedQuery,"([^*]) +","$1~ "),"~)") AS ?queryTerm)
+                ?e text:query ?queryTerm .
+                ?e a crm:E21_Person .
+              }
+              LIMIT 30
+            }
+            ?e rdfs:label|skos:prefLabel|skos:altLabel ?mlabel .
+            ?str pf:strSplit (<QUERY> " ")
+            BIND(sf:levenshteinSubstring(?str,STR(?mlabel)) AS ?s)
+          } GROUP BY ?e ?mlabel
+        }
+        BIND(<QUERY_ID> AS ?queryId)
+        FILTER(BOUND(?e))
+    	  OPTIONAL {
+    		    ?e emlos:deathDate/crm:P82b_end_of_the_end ?dd .
+              BIND(IF(STRDT(<CELL_1>,xsd:integer)>YEAR(?dd),"Died before! ","") AS ?dwarning)
+    	  }
+    	  OPTIONAL {
+    		    ?e emlos:birthDate/crm:P82a_begin_of_the_begin ?bd .
+              BIND(IF(YEAR(?bd)>STRDT(<CELL_2>,xsd:integer),"Wasn't born! ","") AS ?bwarning)
+    	  }
+      } # /QUERY
+      ?e skos:prefLabel ?l .
+      ?e emlos:ipersonId ?entity .
+      OPTIONAL {
+        ?e ((^emlos:cofk_union_relationship_type-was_addressed_to/emlos:cofk_union_relationship_type-was_sent_to)|(emlos:cofk_union_relationship_type-created/emlos:cofk_union_relationship_type-was_sent_from))/skos:prefLabel ?pl .
+      }
+      OPTIONAL {
+        ?e skos:altLabel ?al .
+      }
+      BIND(CONCAT('<a href="https://emlo-edit.bodleian.ox.ac.uk/interface/union.php?class_name=person&method_name=one_person_search_results&iperson_id=',?entity,'&opening_method=db_search_results" target="_blank">[o]</a>') AS ?url)
+    }
+    GROUP BY ?queryId ?entity
+    ORDER BY ?queryId DESC(?score)
+
+Here, the core query is much the same, but in sourcing additional information, new functionalities are also used. First, in ?plabel, the query gathers all places associated with the person for aiding in disambiguation. More importantly however, the query makes use of possible additional information in the spreadsheet. Specifically, if the original spreadsheet ingested contains after the name two fields specifying the activity period (from,to) of the person (e.g. from letter dates), the query compares these with the birth and death dates of the candidate. If the constraints specified in the query are not met, warnings are generated to be passed on to the selector UI in Recon.
