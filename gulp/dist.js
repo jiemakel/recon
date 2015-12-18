@@ -16,7 +16,6 @@ gulp.task('dist:partials', function() {
 gulp.task('dist:html', ['dist:partials'], function() {
   var jsFilter = $.filter("**/*.js", {restore: true});
   var cssFilter = $.filter("**/*.css", {restore: true});
-  var assets = $.useref.assets();
   return gulp.src(".tmp/*.html")
     .pipe($.plumber({ errorHandler: $.notify.onError("<%= error.stack %>") }))
     .pipe($.print(function(path) { return "dist:html(1) " + path; }))
@@ -28,9 +27,9 @@ gulp.task('dist:html', ['dist:partials'], function() {
       addRootSlash: false,
       addPrefix: ".."
     }))
-    .pipe(assets)
-    .pipe($.rev())
+    .pipe($.useref())
     .pipe(jsFilter)
+    .pipe($.rev())
     .pipe($.print(function(path) { return "dist:html-js(1) " + path; }))
     .pipe($.size({ title: 'dist:html-js(1)' }))
     .pipe($.ngAnnotate()).pipe($.uglify({ preserveComments: uglifySaveLicense }))
@@ -38,6 +37,7 @@ gulp.task('dist:html', ['dist:partials'], function() {
     .pipe($.size({ title: 'dist:html-js(2)' }))
     .pipe(jsFilter.restore)
     .pipe(cssFilter)
+    .pipe($.rev())
     .pipe($.print(function(path) { return "dist:html-css(1) " + path; }))
     .pipe($.size({ title: 'dist:html-css(1)' }))
     .pipe($.replace(/url\(".*?\/(\w+\.(eot|svg|ttf|woff|woff2).*?)"\)/g, 'url("$1")'))
@@ -46,8 +46,6 @@ gulp.task('dist:html', ['dist:partials'], function() {
     .pipe($.print(function(path) { return "dist:html-css(2) " + path; }))
     .pipe($.size({ title: 'dist:html-css(2)' }))
     .pipe(cssFilter.restore)
-    .pipe(assets.restore())
-    .pipe($.useref())
     .pipe($.revReplace())
     .pipe(gulp.dest("dist"))
     .pipe($.print(function(path) { return "dist:html(2) " + path; }))
@@ -70,9 +68,8 @@ gulp.task('dist:images', function() {
 });
 
 gulp.task('dist:cssimages', function() {
-  return gulp.src(mainBowerFiles())
+  return gulp.src(mainBowerFiles("*/*.{png,jpg,jpeg}"))
     .pipe($.plumber({ errorHandler: $.notify.onError("<%= error.stack %>") }))
-    .pipe($.filter("**/*.{png,jpg,jpeg}"))
     .pipe($.print(function(path) { return "dist:cssimages(1) " + path; }))
     .pipe($.size({ title: 'dist:cssimages(1)' }))
     .pipe($.flatten())
@@ -82,22 +79,20 @@ gulp.task('dist:cssimages', function() {
 });
 
 gulp.task('dist:cssfonts', function() {
-  return gulp.src(mainBowerFiles())
+  return gulp.src(mainBowerFiles("**/*.{eot,svg,ttf,woff,woff2}"))
     .pipe($.plumber({ errorHandler: $.notify.onError("<%= error.stack %>") }))
-    .pipe($.filter("**/*.{eot,svg,ttf,woff,woff2}"))
     .pipe($.print(function(path) { return "dist:cssfonts(1) " + path; }))
     .pipe($.size({ title: 'dist:cssfonts(1)' }))
     .pipe($.size())
     .pipe($.flatten())
-    .pipe(gulp.dest("dist/styles"))
+    .pipe(gulp.dest("dist/fonts"))
     .pipe($.print(function(path) { return "dist:cssfonts(2) " + path; }))
     .pipe($.size({ title: 'dist:cssfonts(2)' }));
 });
 
 gulp.task('dist:refs', function() {
-  return gulp.src(mainBowerFiles(), { base: 'app/' })
+  return gulp.src(mainBowerFiles("**/*.{svg,swf}"), { base: 'app/' })
     .pipe($.plumber({ errorHandler: $.notify.onError("<%= error.stack %>") }))
-    .pipe($.filter("**/*.{svg,swf}"))
     .pipe($.print(function(path) { return "dist:refs(1) " + path; }))
     .pipe($.size({ title: 'dist:refs(1)' }))
     .pipe(gulp.dest("dist"))
@@ -106,9 +101,8 @@ gulp.task('dist:refs', function() {
 });
 
 gulp.task('dist:refimages', function() {
-  return gulp.src(mainBowerFiles(), { base: 'app/' })
+  return gulp.src(mainBowerFiles("**/*.{png,jpg,jpeg}"), { base: 'app/' })
     .pipe($.plumber({ errorHandler: $.notify.onError("<%= error.stack %>") }))
-    .pipe($.filter("**/*.{png,jpg,jpeg}"))
     .pipe($.print(function(path) { return "dist:refimages(1) " + path; }))
     .pipe($.size({ title: 'dist:refimages(1)' }))
     .pipe($.cache($.imagemin({

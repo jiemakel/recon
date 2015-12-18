@@ -17,7 +17,7 @@ gulp.task('scripts', function() {
     .pipe($.sourcemaps.init())
     .pipe($.typescript(tsProject)).js
     .pipe($.typescriptAngular({ moduleName: 'app' }))
-    .pipe($.sourcemaps.write("scripts/tmp/maps"))
+    .pipe($.sourcemaps.write())
     .pipe(gulp.dest(".tmp"));
 });
 
