@@ -7,6 +7,10 @@
     },
     "filesGlob": [
         "app/scripts/**/*.ts",
+        "app/bower_components/**/*.d.ts",
+        "!app/bower_components/**/node_modules/**/*.ts",
+        "!app/bower_components/**/typings/**/*.ts",
+        "!app/bower_components/angular-ui-router/api/angular-ui-router.d.ts",
         "typings/**/*.d.ts"
     ],
     "files": [
@@ -14,8 +18,8 @@
         "app/scripts/config-ctrl.ts",
         "app/scripts/project-ctrl.ts",
         "app/scripts/projectlist-ctrl.ts",
-        "app/scripts/sparql-service.ts",
-        "app/scripts/yasqe-directive.ts",
+        "app/bower_components/angular-sparql-service/dist/sparql-service.d.ts",
+        "app/bower_components/angular-yasqe-directive/dist/yasqe-directive.d.ts",
         "typings/angular-hotkeys/angular-hotkeys.d.ts",
         "typings/angular-http-auth/angular-http-auth.d.ts",
         "typings/angular-ui-bootstrap/angular-ui-bootstrap.d.ts",
@@ -26,5 +30,7 @@
         "typings/papaparse/papaparse.d.ts",
         "typings/tsd.d.ts"
     ],
-    "exclude": []
+    "atom": {
+        "rewriteTsconfig": true
+    }
 }

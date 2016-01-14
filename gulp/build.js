@@ -27,7 +27,7 @@ gulp.task('templates', function() {
     .pipe($.cached())
     .pipe($.sourcemaps.init())
     .pipe($.jade({pretty: true}))
-    .pipe($.sourcemaps.write("./tmp/maps"))
+    .pipe($.sourcemaps.write())
     .pipe(gulp.dest(".tmp"));
 });
 

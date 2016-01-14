@@ -5,11 +5,10 @@ html(lang="en",ng-app="app")
     meta(name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width")
     // build:css(app) styles/vendor.css
     // bower:css
-    link(rel='stylesheet', href='bower_components/bootstrap/dist/css/bootstrap.css')
-    link(rel='stylesheet', href='bower_components/font-awesome/css/font-awesome.css')
-    link(rel='stylesheet', href='bower_components/angular-hotkeys/build/hotkeys.min.css')
-    // endbower
     link(rel='stylesheet', href='bower_components/yasgui-yasqe/dist/yasqe.css')
+    link(rel='stylesheet', href='bower_components/bootstrap/dist/css/bootstrap.css')
+    link(rel='stylesheet', href='bower_components/angular-hotkeys/build/hotkeys.css')
+    // endbower
     // endbuild
     // build:css(.tmp) styles/main.css
     link(rel="stylesheet" href="styles/main.css")
@@ -37,22 +36,22 @@ html(lang="en",ng-app="app")
     script(src='bower_components/angular-ui-router/release/angular-ui-router.js')
     script(src='bower_components/ngstorage/ngStorage.js')
     script(src='bower_components/angular-http-auth/src/http-auth-interceptor.js')
-    script(src='bower_components/yasgui-yasqe/dist/yasqe.bundled.min.js')
-    script(src='bower_components/papaparse/papaparse.js')
+    script(src='bower_components/yasgui-yasqe/dist/yasqe.bundled.js')
+    script(src='bower_components/papa.parse/papaparse.js')
     script(src='bower_components/ng-file-upload/ng-file-upload.js')
     script(src='bower_components/angular-bootstrap/ui-bootstrap-tpls.js')
     script(src='bower_components/bootstrap/dist/js/bootstrap.js')
-    script(src='bower_components/angular-hotkeys/build/hotkeys.min.js')
+    script(src='bower_components/angular-hotkeys/build/hotkeys.js')
     script(src='bower_components/ng-focus-on/ng-focus-on.js')
     script(src='bower_components/FileSaver/FileSaver.js')
+    script(src='bower_components/angular-sparql-service/dist/sparql-service.js')
+    script(src='bower_components/angular-yasqe-directive/dist/yasqe-directive.js')
     script(src='bower_components/angular-utf8-base64/angular-utf8-base64.js')
     // endbower
     // endbuild
 
     // build:js(.tmp) scripts/main.js
     script(src="scripts/app.js")
-    script(src="scripts/yasqe-directive.js")
-    script(src="scripts/sparql-service.js")
     script(src="scripts/project-ctrl.js")
     script(src="scripts/projectlist-ctrl.js")
     script(src="scripts/config-ctrl.js")

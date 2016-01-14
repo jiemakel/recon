@@ -1,24 +1,47 @@
 {
-  "name": "app",
+  "name": "recon",
   "version": "0.0.0",
   "dependencies": {
-    "angular": "latest",
-    "jquery": "latest",
-    "angular-ui-router": "latest",
-    "ngstorage": "latest",
-    "angular-http-auth": "latest",
-    "yasgui-yasqe": "latest",
-    "papaparse": "mholt/PapaParse",
-    "ng-file-upload": "latest",
-    "angular-bootstrap": "latest",
-    "bootstrap": "latest",
-    "font-awesome": "latest",
+    "angular": "~1.4.8",
+    "jquery": "~2.2.0",
+    "angular-ui-router": "~0.2.15",
+    "ngstorage": "~0.3.10",
+    "angular-http-auth": "~1.2.3",
+    "yasgui-yasqe": "~2.8.2",
+    "papa.parse": "~4.1.2",
+    "ng-file-upload": "~11.1.1",
+    "angular-bootstrap": "~1.0.3",
+    "bootstrap": "~3.3.6",
+    "font-awesome": "~4.5.0",
     "angular-hotkeys": "chieffancypants/angular-hotkeys",
-    "ng-focus-on": "latest",
+    "ng-focus-on": "~0.2.2",
     "FileSaver": "*",
+    "angular-sparql-service": "~1.0.1",
+    "angular-yasqe-directive": "~1.0.0",
     "angular-utf8-base64": "~0.0.5"
   },
-  "devDependencies": {
-    "angular-mocks": "latest"
+  "overrides": {
+    "bootstrap": {
+      "main": [
+        "less/bootstrap.less",
+        "dist/js/bootstrap.js",
+        "dist/css/bootstrap.css",
+        "dist/fonts/glyphicons-halflings-regular.eot",
+        "dist/fonts/glyphicons-halflings-regular.svg",
+        "dist/fonts/glyphicons-halflings-regular.ttf",
+        "dist/fonts/glyphicons-halflings-regular.woff",
+        "dist/fonts/glyphicons-halflings-regular.woff2"
+      ]
+    },
+    "yasgui-yasqe": {
+      "main": [
+        "dist/yasqe.bundled.js",
+        "dist/yasqe.css"
+      ]
+    }
+  },
+  "devDependencies": {},
+  "resolutions": {
+    "angular": "~1.4.8"
   }
 }
