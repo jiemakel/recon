@@ -13,21 +13,25 @@ script(type="text/ng-template",id="loadSPARQL")
     button.btn.btn-success(ng-click="$close();loadSPARQL()") Ok
 .container-fluid(style="max-width:97%")
   .row
-    .col-xs-3
+    div(ng-class="reviewing ? 'col-xs-12' : 'col-xs-3'")
       table.table.table-bordered.table-striped
-        tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.currentOffset"): td(ng-class="state.reconData[state.currentOffset + $index].match ? 'has-success' : (state.reconData[state.currentOffset + $index].match === null ? 'has-warning' : 'has-error')")
-          input.form-control(tooltip-placement="right",tooltip="{{state.reconData[state.currentOffset + $index].match.id ? state.reconData[state.currentOffset + $index].match.label + ' (' + state.reconData[state.currentOffset + $index].match.id + ')' : ''}}",select-on-focus,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-model-options="{debounce: 300}",ng-focus="focus(state.currentOffset + $index,input)",ng-change="search(state.currentOffset + $index,input)")
-      pagination.pagination-sm(ng-model="currentPage",items-per-page="config.pageSize",max-size="4",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
+        tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.currentOffset")
+          td(ng-class="state.reconData[state.currentOffset + $index].match ? 'has-success' : (state.reconData[state.currentOffset + $index].match === null ? 'has-warning' : 'has-error')")
+            input.form-control(tooltip-placement="right",uib-tooltip="{{state.reconData[state.currentOffset + $index].match.id ? state.reconData[state.currentOffset + $index].match.label + ' (' + state.reconData[state.currentOffset + $index].match.id + ')' : ''}}",select-on-focus,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-model-options="{debounce: 300}",ng-focus="focus(state.currentOffset + $index,input)",ng-change="search(state.currentOffset + $index,input)")
+          td(ng-if="reviewing") {{state.reconData[state.currentOffset + $index].match.id ? state.reconData[state.currentOffset + $index].match.label + ' (' + state.reconData[state.currentOffset + $index].match.id + ')' : ( state.reconData[state.currentOffset + $index].match === null ? 'none' : 'not processed')}}
+          td(ng-if="reviewing",ng-repeat="value in row | limitTo:100:1 track by $index ") {{value}}
+      uib-pagination.pagination-sm(ng-model="currentPage",items-per-page="config.pageSize",max-size="4",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
       uib-progress
         uib-bar(type="success",value="100 * state.counts.match / state.data.length") {{state.counts.match}}
         uib-bar(type="warning",value="100 * state.counts.nomatch / state.data.length") {{state.counts.nomatch}}
         | &nbsp;{{state.data.length - state.counts.match - state.counts.nomatch}}
       .clearfix
+        button.btn.btn-success(ng-click="reviewing=true") Review
         button.btn.btn-success(ngf-select,ngf-change="loadCSVFile($files[0])",ngf-multiple="false") Load CSV
         button.btn.btn-success(ng-click="openSPARQL()") Load SPARQL
         button.btn.btn-warning(ng-click="saveCSVFile()",ng-show="state.data.length>0") Export CSV
         button.btn.btn-default(ui-sref="configure({projectId:projectId})") Configure
-    .col-xs-9(style="max-height:95vh;overflow-y:auto")
+    .col-xs-9(style="max-height:95vh;overflow-y:auto",ng-if="!reviewing")
       i.fa.fa-spinner.fa-spin(ng-show="queryRunning && !error")
       div(ng-show="error")
         h4 {{error.status}}

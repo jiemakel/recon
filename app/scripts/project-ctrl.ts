@@ -19,6 +19,7 @@ namespace fi.seco.recon {
     focus: (index: number, text: string) => void
     search: (index: number, text: string) => void
     queryRunning: boolean
+    reviewing: boolean
     $sce: angular.ISCEService
   }
 
@@ -310,6 +311,7 @@ namespace fi.seco.recon {
         } else focus('row' + (state.currentRow + 1))
       }
       $scope.focus = (index, text) => {
+        $scope.reviewing = false
         state.currentRow = index
         if (lastMultifetchFailed && (!state.reconData[index] || !state.reconData[index].candidates || state.reconData[index].candidates.length === 0)) findMatches([{text, index}])
       }
