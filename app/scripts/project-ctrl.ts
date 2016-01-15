@@ -10,6 +10,7 @@ namespace fi.seco.recon {
     currentPage: number
     error: angular.IHttpPromiseCallbackArg<string>
     sparqlEndpointOK: boolean
+    loadExcelSheet: () => void
     openSPARQL: () => void
     loadSPARQL: () => void
     loadCSVFile: (file: File) => void
@@ -20,7 +21,16 @@ namespace fi.seco.recon {
     search: (index: number, text: string) => void
     queryRunning: boolean
     reviewing: boolean
-    $sce: angular.ISCEService
+    excelSheets: ExcelSheet[]
+  }
+
+  class ExcelSheet {
+    constructor(
+      public name: string
+    ) {}
+    public headers: string[] = []
+    public data: string[][] = []
+    public active: boolean = false
   }
 
   interface IParams {
@@ -32,6 +42,8 @@ namespace fi.seco.recon {
     index: number,
     text: string
   }
+
+  declare var XLSX: any
 
   export class ProjectController {
 
@@ -150,7 +162,6 @@ namespace fi.seco.recon {
         this.canceler.resolve()
         $scope.queryRunning = true
         this.canceler = $q.defer()
-        $scope.$sce = $sce
         sparqlService.query(config.sparqlEndpoint, queryText, {timeout: this.canceler.promise}).then(
           (response: angular.IHttpPromiseCallbackArg<s.ISparqlBindingResult<{[id: string]: s.ISparqlBinding}>>) => {
             if (queries.length > 1) lastMultifetchFailed = false
@@ -192,7 +203,7 @@ namespace fi.seco.recon {
         if (nv === ov - 1) state.currentRow = state.currentOffset + config.pageSize - 1
         else if (ov === 1 && nv === Math.floor(state.data.length / config.pageSize + 1)) state.currentRow = state.data.length - 1
         else state.currentRow = state.currentOffset
-        focus('row' + state.currentRow)
+        if (!$scope.reviewing) focus('row' + state.currentRow)
         let fm: IQuery[] = []
         let til: number = state.currentOffset + config.pageSize
         if (til > state.data.length) til = state.data.length
@@ -268,26 +279,61 @@ namespace fi.seco.recon {
         })
         saveAs(new Blob([Papa.unparse(data)], {type: 'text/csv'}), 'reconciled-' + state.fileName)
       }
+      let init: (data: string[][]) => void = (data: string[][]) => {
+        state.data = data
+        state.currentRow = 0
+        state.currentOffset = 0
+        state.counts = {
+          match: 0,
+          nomatch: 0
+        }
+        $scope.currentPage = 1
+        state.reconData = []
+        let fm: IQuery[] = []
+        let til: number = state.currentOffset + config.pageSize
+        if (til > state.data.length) til = state.data.length
+        for (let index: number = state.currentOffset; index < til; index++) if (!state.reconData[index]) fm.push({index, text: state.data[index][0]})
+        findMatches(fm)
+        $scope.$digest()
+      }
+      $scope.loadExcelSheet = () => {
+        $scope.excelSheets.filter(s => s.active).forEach(s => init(s.data))
+      }
       $scope.loadCSVFile = (file: File) => {
         if (!file) return
         state.fileName = file.name
-        Papa.parse(file, { complete: (csv): void => {
-          state.data = csv.data
-          state.currentRow = 0
-          state.currentOffset = 0
-          state.counts = {
-            match: 0,
-            nomatch: 0
+        if (file.type === 'text/csv')
+          Papa.parse(file, { complete: (csv): void => {
+            if (csv.errors.length !== 0)
+              handleError({data: csv.errors.map(e => e.message).join('\n')})
+            else init(csv.data)
           }
-          $scope.currentPage = 1
-          state.reconData = []
-          let fm: IQuery[] = []
-          let til: number = state.currentOffset + config.pageSize
-          if (til > state.data.length) til = state.data.length
-          for (let index: number = state.currentOffset; index < til; index++) if (!state.reconData[index]) fm.push({index, text: state.data[index][0]})
-          findMatches(fm)
-          $scope.$digest() }
-        , error: handleError})
+          , error: (error: PapaParse.ParseError): void => handleError({data: error.message})})
+        else {
+          let reader: FileReader = new FileReader()
+          reader.onload = () => {
+            let workBook: any = XLSX.read(reader.result, {type: 'binary'})
+            $scope.excelSheets = []
+            workBook.SheetNames.forEach(sn => {
+              let sheet: ExcelSheet = new ExcelSheet(sn)
+              let sheetJson: {}[] = XLSX.utils.sheet_to_json(workBook.Sheets[sn])
+              for (let header in sheetJson[0]) if (!header.startsWith('__')) sheet.headers.push(header)
+              sheet.data = XLSX.utils.sheet_to_json(workBook.Sheets[sn]).map(row => {
+                let row2: string[] = []
+                sheet.headers.forEach(h => row2.push(row[h]))
+                return row2
+              })
+              $scope.excelSheets.push(sheet)
+            })
+            $scope.excelSheets[0].active = true
+            $uibModal.open({
+              templateUrl: 'selectSheet',
+              scope: $scope,
+              size: 'lg'
+            })
+          }
+          reader.readAsBinaryString(file)
+        }
       }
       $scope.deselect = () => {
         if (state.reconData[state.currentRow].match) state.counts.match--

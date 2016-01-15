@@ -18,7 +18,8 @@
     "FileSaver": "*",
     "angular-sparql-service": "~1.0.1",
     "angular-yasqe-directive": "~1.0.0",
-    "angular-utf8-base64": "~0.0.5"
+    "angular-utf8-base64": "~0.0.5",
+    "js-xlsx": "~0.8.0"
   },
   "overrides": {
     "bootstrap": {
@@ -37,6 +38,11 @@
       "main": [
         "dist/yasqe.bundled.js",
         "dist/yasqe.css"
+      ]
+    },
+    "js-xlsx": {
+      "main": [
+        "dist/xlsx.full.min.js"
       ]
     }
   },

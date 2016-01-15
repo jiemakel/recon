@@ -1,3 +1,14 @@
+script(type="text/ng-template",id="selectSheet")
+  .modal-header
+    h3.modal-title Select a sheet to load
+  .modal-body
+    uib-tabset
+      uib-tab(ng-repeat="sheet in excelSheets",heading="{{sheet.name}}",active="sheet.active")
+        div(style="overflow:scroll;max-height:500px"): table.table.table-bordered.table-striped
+          tr: th(ng-repeat="header in sheet.headers track by $index") {{header}}
+          tr(ng-repeat="row in sheet.data | limitTo:10 track by $index"): td(ng-repeat="column in row track by $index") {{column}}
+  .modal-footer
+    button.btn.btn-success(ng-click="$close();loadExcelSheet()") Select
 script(type="text/ng-template",id="loadSPARQL")
   .modal-header
     h3.modal-title Load from a SPARQL endpoint
@@ -10,7 +21,7 @@ script(type="text/ng-template",id="loadSPARQL")
       yasqe(data="state.loadQuery")
       yasr
   .modal-footer
-    button.btn.btn-success(ng-click="$close();loadSPARQL()") Ok
+    button.btn.btn-success(ng-click="$close();loadSPARQL()") Ok    
 .container-fluid(style="max-width:97%")
   .row
     div(ng-class="reviewing ? 'col-xs-12' : 'col-xs-3'")
@@ -18,16 +29,18 @@ script(type="text/ng-template",id="loadSPARQL")
         tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.currentOffset")
           td(ng-class="state.reconData[state.currentOffset + $index].match ? 'has-success' : (state.reconData[state.currentOffset + $index].match === null ? 'has-warning' : 'has-error')")
             input.form-control(tooltip-placement="right",uib-tooltip="{{state.reconData[state.currentOffset + $index].match.id ? state.reconData[state.currentOffset + $index].match.label + ' (' + state.reconData[state.currentOffset + $index].match.id + ')' : ''}}",select-on-focus,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-model-options="{debounce: 300}",ng-focus="focus(state.currentOffset + $index,input)",ng-change="search(state.currentOffset + $index,input)")
-          td(ng-if="reviewing") {{state.reconData[state.currentOffset + $index].match.id ? state.reconData[state.currentOffset + $index].match.label + ' (' + state.reconData[state.currentOffset + $index].match.id + ')' : ( state.reconData[state.currentOffset + $index].match === null ? 'none' : 'not processed')}}
+            span(ng-if="reviewing",style="visibility:hidden;white-space:nowrap") {{row[0]}}
           td(ng-if="reviewing",ng-repeat="value in row | limitTo:100:1 track by $index ") {{value}}
+          td(ng-if="reviewing",ng-class="state.reconData[state.currentOffset + $index].match ? 'info' : (state.reconData[state.currentOffset + $index].match === null ? 'warning' : 'danger')") {{state.reconData[state.currentOffset + $index].match.id ? state.reconData[state.currentOffset + $index].match.label + ' (' + state.reconData[state.currentOffset + $index].match.id + ')' : ( state.reconData[state.currentOffset + $index].match === null ? 'none' : 'not processed')}}
+          td.info(ng-if="reviewing",ng-repeat="descr in state.reconData[state.currentOffset + $index].match.description track by $index",ng-bind-html="descr | trustAsHtml")
       uib-pagination.pagination-sm(ng-model="currentPage",items-per-page="config.pageSize",max-size="4",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
       uib-progress
         uib-bar(type="success",value="100 * state.counts.match / state.data.length") {{state.counts.match}}
         uib-bar(type="warning",value="100 * state.counts.nomatch / state.data.length") {{state.counts.nomatch}}
         | &nbsp;{{state.data.length - state.counts.match - state.counts.nomatch}}
       .clearfix
-        button.btn.btn-success(ng-click="reviewing=true") Review
-        button.btn.btn-success(ngf-select,ngf-change="loadCSVFile($files[0])",ngf-multiple="false") Load CSV
+        button.btn.btn-success(ng-click="reviewing=!reviewing") Review
+        button.btn.btn-success(ngf-select,ngf-change="loadCSVFile($files[0])",ngf-multiple="false") Load File
         button.btn.btn-success(ng-click="openSPARQL()") Load SPARQL
         button.btn.btn-warning(ng-click="saveCSVFile()",ng-show="state.data.length>0") Export CSV
         button.btn.btn-default(ui-sref="configure({projectId:projectId})") Configure
@@ -52,7 +65,7 @@ script(type="text/ng-template",id="loadSPARQL")
           th(ng-if="$index<9",ng-click="select($index)",style="cursor:pointer") {{$index+1}}
           th(ng-if="$index>=9",ng-click="select($index)",style="cursor:pointer") -
           th(ng-click="select($index)",style="cursor:pointer") {{candidate.label}}
-          td(ng-repeat="descr in candidate.description track by $index",ng-bind-html="$sce.trustAsHtml(descr)")
+          td(ng-repeat="descr in candidate.description track by $index",ng-bind-html="descr | trustAsHtml")
       button.btn.btn-block.btn-danger(ng-show="state.reconData[state.currentRow].candidates.length==30") ...
     .row
       .col-xs-12

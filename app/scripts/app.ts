@@ -47,6 +47,11 @@ namespace fi.seco.recon {
     }
     $rootScope.$on('event:auth-loginRequired', () => $rootScope.authInfo.authOpen = true)
   })
+  m.filter('trustAsHtml', ['$sce', function($sce: angular.ISCEService): (htmlCode: string) => any {
+    return function(htmlCode: string): any {
+      return $sce.trustAsHtml(htmlCode)
+    }
+  }])
 
   export class SelectOnFocusDirective {
     public restrict: string = 'A'
