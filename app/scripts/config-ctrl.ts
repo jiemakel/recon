@@ -40,12 +40,15 @@ namespace fi.seco.recon {
       match: number
       nomatch: number
     }
+    headings: string[]
+    matchHeadings: string[]
   }
 
   export interface IReconData {
     match: {
       id: string
     }
+    notes: string
     candidates: ICandidate[]
   }
 

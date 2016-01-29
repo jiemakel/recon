@@ -8,12 +8,12 @@ namespace fi.seco.recon {
     projectId: string
     state: IState
     currentPage: number
-    error: angular.IHttpPromiseCallbackArg<string>
+    error: IError
     sparqlEndpointOK: boolean
-    loadExcelSheet: () => void
+    loadSheet: () => void
     openSPARQL: () => void
     loadSPARQL: () => void
-    loadCSVFile: (file: File) => void
+    loadFile: (file: File) => void
     saveCSVFile: () => void
     select: (index: number) => void
     deselect: () => void
@@ -21,14 +21,21 @@ namespace fi.seco.recon {
     search: (index: number, text: string) => void
     queryRunning: boolean
     reviewing: boolean
-    excelSheets: ExcelSheet[]
+    sheets: Sheet[]
+    skipRows: number
+    firstRowIsHeader: boolean
   }
 
-  class ExcelSheet {
+  interface IError {
+    data?: string
+    config?: {}
+    status?: number
+  }
+
+  class Sheet {
     constructor(
       public name: string
     ) {}
-    public headers: string[] = []
     public data: string[][] = []
     public active: boolean = false
   }
@@ -83,14 +90,16 @@ namespace fi.seco.recon {
         counts: {
           match: 0,
           nomatch: 0
-        }
+        },
+        headings: [],
+        matchHeadings: []
       }
       let state: IState = $localStorage.projects[$stateParams.projectId].state
       $scope.state = state
       $scope.currentPage = state.currentOffset / config.pageSize + 1
       hotkeys.bindTo($scope).add({
         combo: 'shift+tab',
-        allowIn: ['INPUT'],
+        allowIn: ['INPUT', 'TEXTAREA'],
         callback: (event: Event, hotkey: angular.hotkeys.Hotkey): void => {
           if (state.currentRow === state.currentOffset) {
             $scope.currentPage--
@@ -100,7 +109,7 @@ namespace fi.seco.recon {
       })
       hotkeys.bindTo($scope).add({
         combo: 'tab',
-        allowIn: ['INPUT'],
+        allowIn: ['INPUT', 'TEXTAREA'],
         callback: (event: Event, hotkey: angular.hotkeys.Hotkey): void => {
           if (state.currentRow === state.currentOffset + config.pageSize - 1 || state.currentRow === state.data.length - 1) {
             $scope.currentPage++
@@ -109,11 +118,12 @@ namespace fi.seco.recon {
         }
       })
       hotkeys.bindTo($scope).add({
-        combo: '0',
-        allowIn: ['INPUT'],
+        combo: 'ctrl+0',
+        allowIn: ['INPUT', 'TEXTAREA'],
         callback: (event: Event, hotkey: angular.hotkeys.Hotkey): void => {
           if (!state.reconData[state.currentRow]) state.reconData[state.currentRow] = {
             match: undefined,
+            notes: '',
             candidates: []
           }
           if (state.reconData[state.currentRow].match) state.counts.match--
@@ -127,14 +137,14 @@ namespace fi.seco.recon {
         }
       })
       for (let number: number = 1; number < 10; number++) hotkeys.bindTo($scope).add({
-        combo: '' + number,
-        allowIn: ['INPUT'],
+        combo: 'ctrl+' + number,
+        allowIn: ['INPUT', 'TEXTAREA'],
         callback: (event: Event, hotkey: angular.hotkeys.Hotkey): void => {
           if (!state.reconData[state.currentRow].match) {
             state.counts.match++
             if (state.reconData[state.currentRow].match === null) state.counts.nomatch--
           }
-          state.reconData[state.currentRow].match = state.reconData[state.currentRow].candidates[(parseInt(hotkey.combo[0], 10) - 1)]
+          state.reconData[state.currentRow].match = state.reconData[state.currentRow].candidates[(parseInt(hotkey.combo[0].substr(5), 10) - 1)]
 
           if (state.currentRow === state.currentOffset + config.pageSize - 1) {
             $scope.currentPage++
@@ -168,6 +178,7 @@ namespace fi.seco.recon {
             queries.forEach((q: IQuery) => { if (state.reconData[q.index]) delete state.reconData[q.index].candidates})
             $scope.error = undefined
             $scope.queryRunning = false
+            state.matchHeadings = response.data.head.vars.filter(pname => pname !== 'queryId' && pname !== 'entity' && pname !== 'label' && pname !== 'score')
             const candidatesHashes: {[id: string]: {[id: string]: ICandidate}} = {}
             response.data.results.bindings.filter(binding => binding['entity'] ? true : false).forEach((binding, index) => {
               if (!candidatesHashes[binding['queryId'].value]) candidatesHashes[binding['queryId'].value] = {}
@@ -182,7 +193,7 @@ namespace fi.seco.recon {
               response.data.head.vars.filter(pname => pname !== 'queryId' && pname !== 'entity' && pname !== 'label' && pname !== 'score').forEach(pname => candidatesHash[binding['entity'].value].description.push(binding[pname] ? binding[pname].value : ''))
             })
             for (let index in candidatesHashes) {
-              if (!state.reconData[index]) state.reconData[index] = {match: undefined, candidates: []}
+              if (!state.reconData[index]) state.reconData[index] = {match: undefined, notes: '', candidates: []}
               const candidates: ICandidate[] = []
               for (let candidate in candidatesHashes[index]) candidates.push(candidatesHashes[index][candidate])
               candidates.sort((a, b) => a.index - b.index)
@@ -225,7 +236,7 @@ namespace fi.seco.recon {
           (response: angular.IHttpPromiseCallbackArg<s.ISparqlBindingResult<{[id: string]: s.ISparqlBinding}>>) => {
             let data: {[id: string]: {[id: string]: {[id: string]: boolean}}} = {}
             const idvar: string = response.data.head.vars[0]
-            response.data.results.bindings.filter(binding => binding['entity'] ? true : false).forEach(binding => {
+            response.data.results.bindings.filter(binding => binding[idvar] ? true : false).forEach(binding => {
               const id: string = binding[idvar].value
               if (!data[id]) data[id] = {}
               response.data.head.vars.forEach(currentVar => {
@@ -270,17 +281,24 @@ namespace fi.seco.recon {
       }
       $scope.saveCSVFile = () => {
         let data: string[][] = []
+        let headings: string[] = state.headings.slice()
+        headings.splice(1, 0, 'Match', 'Notes')
+        data.push(headings)
         state.data.forEach((row, index) => {
           const nrow: string[] = row.slice()
-          if (state.reconData[index] && state.reconData[index].match)
-            nrow.splice(1, 0, state.reconData[index].match.id)
-          else nrow.splice(1, 0, undefined)
+          if (!state.reconData[index])
+            nrow.splice(1, 0, undefined, undefined)
+          else if (state.reconData[index].match)
+            nrow.splice(1, 0, state.reconData[index].match.id, state.reconData[index].notes)
+          else nrow.splice(1, 0, undefined, state.reconData[index].notes)
           data.push(nrow)
         })
-        saveAs(new Blob([Papa.unparse(data)], {type: 'text/csv'}), 'reconciled-' + state.fileName)
+        saveAs(new Blob([Papa.unparse(data)], {type: 'text/csv'}), 'reconciled-' + state.fileName + (state.fileName.indexOf('.csv', state.fileName.length - 4) !== -1 ? '' : '.csv'))
       }
       let init: (data: string[][]) => void = (data: string[][]) => {
+        state.headings =  data[0].map((column, index) => $scope.firstRowIsHeader ? column : 'Column ' + index)
         state.data = data
+        state.data.splice(0,  ($scope.skipRows ? $scope.skipRows : 0) + ($scope.firstRowIsHeader ? 1 : 0))
         state.currentRow = 0
         state.currentOffset = 0
         state.counts = {
@@ -294,38 +312,49 @@ namespace fi.seco.recon {
         if (til > state.data.length) til = state.data.length
         for (let index: number = state.currentOffset; index < til; index++) if (!state.reconData[index]) fm.push({index, text: state.data[index][0]})
         findMatches(fm)
-        $scope.$digest()
       }
-      $scope.loadExcelSheet = () => {
-        $scope.excelSheets.filter(s => s.active).forEach(s => init(s.data))
+      $scope.loadSheet = () => {
+        $scope.sheets.filter(s => s.active).forEach(s => init(s.data))
       }
-      $scope.loadCSVFile = (file: File) => {
+      $scope.loadFile = (file: File) => {
         if (!file) return
         state.fileName = file.name
         if (file.type === 'text/csv')
           Papa.parse(file, { complete: (csv): void => {
             if (csv.errors.length !== 0)
               handleError({data: csv.errors.map(e => e.message).join('\n')})
-            else init(csv.data)
+            else {
+              $scope.sheets = [ new Sheet('Table') ]
+              $scope.firstRowIsHeader = true
+              $scope.sheets[0].data = csv.data
+              $scope.sheets[0].active = true
+              $uibModal.open({
+                templateUrl: 'selectSheet',
+                scope: $scope,
+                size: 'lg'
+              })
+            }
           }
           , error: (error: PapaParse.ParseError): void => handleError({data: error.message})})
         else {
           let reader: FileReader = new FileReader()
           reader.onload = () => {
             let workBook: any = XLSX.read(reader.result, {type: 'binary'})
-            $scope.excelSheets = []
+            $scope.sheets = []
             workBook.SheetNames.forEach(sn => {
-              let sheet: ExcelSheet = new ExcelSheet(sn)
+              let sheet: Sheet = new Sheet(sn)
               let sheetJson: {}[] = XLSX.utils.sheet_to_json(workBook.Sheets[sn])
-              for (let header in sheetJson[0]) if (!header.startsWith('__')) sheet.headers.push(header)
-              sheet.data = XLSX.utils.sheet_to_json(workBook.Sheets[sn]).map(row => {
+              sheet.data = [[]]
+              for (let header in sheetJson[0]) if (!header.startsWith('__')) sheet.data[0].push(header)
+              XLSX.utils.sheet_to_json(workBook.Sheets[sn]).forEach(row => {
                 let row2: string[] = []
-                sheet.headers.forEach(h => row2.push(row[h]))
-                return row2
+                sheet.data[0].forEach(h => row2.push(row[h]))
+                sheet.data.push(row2)
               })
-              $scope.excelSheets.push(sheet)
+              $scope.sheets.push(sheet)
             })
-            $scope.excelSheets[0].active = true
+            $scope.firstRowIsHeader = true
+            $scope.sheets[0].active = true
             $uibModal.open({
               templateUrl: 'selectSheet',
               scope: $scope,
@@ -335,6 +364,7 @@ namespace fi.seco.recon {
           reader.readAsBinaryString(file)
         }
       }
+
       $scope.deselect = () => {
         if (state.reconData[state.currentRow].match) state.counts.match--
         state.counts.nomatch++
