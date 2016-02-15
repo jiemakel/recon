@@ -323,43 +323,46 @@ namespace fi.seco.recon {
           Papa.parse(file, { complete: (csv): void => {
             if (csv.errors.length !== 0)
               handleError({data: csv.errors.map(e => e.message).join('\n')})
-            else {
-              $scope.sheets = [ new Sheet('Table') ]
-              $scope.firstRowIsHeader = true
-              $scope.sheets[0].data = csv.data
-              $scope.sheets[0].active = true
-              $uibModal.open({
-                templateUrl: 'selectSheet',
-                scope: $scope,
-                size: 'lg'
-              })
-            }
-          }
-          , error: (error: PapaParse.ParseError): void => handleError({data: error.message})})
-        else {
-          let reader: FileReader = new FileReader()
-          reader.onload = () => {
-            let workBook: any = XLSX.read(reader.result, {type: 'binary'})
-            $scope.sheets = []
-            workBook.SheetNames.forEach(sn => {
-              let sheet: Sheet = new Sheet(sn)
-              let sheetJson: {}[] = XLSX.utils.sheet_to_json(workBook.Sheets[sn])
-              sheet.data = [[]]
-              for (let header in sheetJson[0]) if (!header.startsWith('__')) sheet.data[0].push(header)
-              XLSX.utils.sheet_to_json(workBook.Sheets[sn]).forEach(row => {
-                let row2: string[] = []
-                sheet.data[0].forEach(h => row2.push(row[h]))
-                sheet.data.push(row2)
-              })
-              $scope.sheets.push(sheet)
-            })
+            $scope.sheets = [ new Sheet('Table') ]
             $scope.firstRowIsHeader = true
+            $scope.sheets[0].data = csv.data
             $scope.sheets[0].active = true
             $uibModal.open({
               templateUrl: 'selectSheet',
               scope: $scope,
               size: 'lg'
             })
+          }
+          , error: (error: PapaParse.ParseError): void => handleError({data: error.message})})
+        else {
+          let reader: FileReader = new FileReader()
+          reader.onload = () => {
+            try {
+              let workBook: any = XLSX.read(reader.result, {type: 'binary'})
+              $scope.sheets = []
+              workBook.SheetNames.forEach(sn => {
+                let sheet: Sheet = new Sheet(sn)
+                let sheetJson: {}[] = XLSX.utils.sheet_to_json(workBook.Sheets[sn])
+                sheet.data = [[]]
+                for (let header in sheetJson[0]) if (!header.startsWith('__')) sheet.data[0].push(header)
+                XLSX.utils.sheet_to_json(workBook.Sheets[sn]).forEach(row => {
+                  let row2: string[] = []
+                  sheet.data[0].forEach(h => row2.push(row[h]))
+                  sheet.data.push(row2)
+                })
+                $scope.sheets.push(sheet)
+              })
+              $scope.firstRowIsHeader = true
+              $scope.sheets[0].active = true
+              $uibModal.open({
+                templateUrl: 'selectSheet',
+                scope: $scope,
+                size: 'lg'
+              })
+            } catch (err) {
+              handleError({data: err.message})
+              $scope.$digest()
+            }
           }
           reader.readAsBinaryString(file)
         }

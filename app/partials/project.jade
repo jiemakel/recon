@@ -4,6 +4,12 @@ script(type="text/ng-template",id="selectSheet")
   .modal-body
     uib-tabset
       uib-tab(ng-repeat="sheet in sheets",heading="{{sheet.name}}",active="sheet.active")
+        div(ng-show="error")
+          h4 {{error.status}}
+            button.pull-right.btn.btn-xs.btn-danger(ng-click="$parent.error='';queryRunning=false") X
+          .clearfix
+          pre.pre-scrollable {{error.data}}
+          pre(ng-show="error.config").pre-scrollable {{error.config}}
         div(style="overflow:scroll;max-height:500px"): table.table.table-bordered.table-striped
           tr 
             th(ng-if="firstRowIsHeader",ng-repeat="header in sheet.data[0] track by $index") {{header}}
@@ -62,10 +68,10 @@ script(type="text/ng-template",id="loadSPARQL")
       i.fa.fa-spinner.fa-spin(ng-show="queryRunning && !error")
       div(ng-show="error")
         h4 {{error.status}}
-          button.pull-right.btn.btn-xs.btn-danger(ng-click="error='';queryRunning=false") X
+          button.pull-right.btn.btn-xs.btn-danger(ng-click="$parent.error='';queryRunning=false") X
         .clearfix
         pre.pre-scrollable {{error.data}}
-        pre.pre-scrollable {{error.config}}
+        pre(ng-show="error.config").pre-scrollable {{error.config}}
       table.table.table-bordered.table-striped
         tr: th(ng-repeat="header in state.headings track by $index") {{header}}
         tr: td(ng-repeat="value in state.data[state.currentRow] track by $index") {{value}}
