@@ -64,6 +64,7 @@ script(type="text/ng-template",id="loadSPARQL")
         button.btn.btn-success(ng-click="openSPARQL()") Load SPARQL
         button.btn.btn-warning(ng-click="saveCSVFile()",ng-show="state.data.length>0") Export CSV
         button.btn.btn-default(ui-sref="configure({projectId:projectId})") Configure
+        button.btn.btn-default(ui-sref="projectlist") Back to project list 
     .col-xs-9(style="max-height:95vh;overflow-y:auto",ng-if="!reviewing")
       i.fa.fa-spinner.fa-spin(ng-show="queryRunning && !error")
       div(ng-show="error")

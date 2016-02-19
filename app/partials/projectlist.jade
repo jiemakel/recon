@@ -1,3 +1,10 @@
+script(type="text/ng-template",id="deleteAll")
+  .modal-header
+    h3.modal-title Are you sure?
+  .modal-body Deleting all projects will clear all data associated with them.
+  .modal-footer
+    button.btn.btn-success(ng-click="$dismiss()") No
+    button.btn.btn-danger(ng-click="$close()") Yes
 .container
   h3 Projects:
   .row(ng-repeat="project in projects")
@@ -8,4 +15,5 @@
         | &nbsp;{{project.total - project.counts.match - project.counts.nomatch}}
   .row: .col-xs-12: ul: li: form.form-inline(ng-submit="newProject(newProjectId)")
       input.form-control(type="text",ng-model="newProjectId")
+  .row: .col-xs-12: button.btn.btn-danger(ng-click="maybeDeleteAll()") Delete all projects
   
