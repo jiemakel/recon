@@ -34,6 +34,11 @@
         "dist/fonts/glyphicons-halflings-regular.woff2"
       ]
     },
+    "font-awesome": {
+      "main": [
+        "css/font-awesome.css"
+      ]
+    },
     "yasgui-yasqe": {
       "main": [
         "dist/yasqe.bundled.js",
