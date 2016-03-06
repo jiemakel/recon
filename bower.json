@@ -36,7 +36,11 @@
     },
     "font-awesome": {
       "main": [
-        "css/font-awesome.css"
+        "css/font-awesome.css",
+        "fonts/fontawesome-webfont.eot",
+        "fonts/fontawesome-webfont.woff",
+        "fonts/fontawesome-webfont.ttf",
+        "fonts/fontawesome-webfont.svg"
       ]
     },
     "yasgui-yasqe": {
