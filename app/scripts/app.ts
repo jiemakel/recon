@@ -30,6 +30,9 @@ namespace fi.seco.recon {
       controller: 'ConfigureController'
     })
   })
+  m.config(($localStorageProvider) => {
+    $localStorageProvider.setKeyPrefix('recon-');
+  })
   m.run(($rootScope: IAuthenticationRootScopeService, $http: angular.IHttpService, authService: angular.httpAuth.IAuthService) => {
     $rootScope.authInfo = {
       authOpen: false,
