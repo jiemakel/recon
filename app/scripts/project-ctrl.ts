@@ -344,7 +344,7 @@ namespace fi.seco.recon {
                 let sheet: Sheet = new Sheet(sn)
                 let sheetJson: {}[] = XLSX.utils.sheet_to_json(workBook.Sheets[sn])
                 sheet.data = [[]]
-                for (let header in sheetJson[0]) if (!header.startsWith('__')) sheet.data[0].push(header)
+                for (let header in sheetJson[0]) if (header.indexOf('__') !== 0) sheet.data[0].push(header)
                 XLSX.utils.sheet_to_json(workBook.Sheets[sn]).forEach(row => {
                   let row2: string[] = []
                   sheet.data[0].forEach(h => row2.push(row[h]))

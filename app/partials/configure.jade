@@ -11,6 +11,9 @@
   .form-group
     button.btn.btn-success(ui-sref="project({projectId:projectId})") Return to project
   .form-group
+    select.form-control(ng-options="project for project in otherProjects",ng-model="copyProjectFrom",ng-change="copyProject(copyProjectFrom);copyProjectFrom=null")
+      option(value="") Copy project from:
+  .form-group
     button.btn.btn-warning(ngf-select,ngf-change="importProject($files[0])",ngf-multiple="false") Import project
     button.btn.btn-warning(ng-click="exportProject()") Export project
   .form-group

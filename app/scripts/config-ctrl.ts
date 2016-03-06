@@ -10,6 +10,8 @@ namespace fi.seco.recon {
     serialize: () => string
     deleteProject: () => void
     importProject: (File) => void
+    copyProject: (project: string) => void
+    otherProjects: string[]
     exportProject: () => void
     deleteData: () => void
     projectId: string
@@ -98,6 +100,13 @@ SELECT ?queryId ?entity ?label ?score {
       $scope.config = $localStorage.projects[$stateParams.projectId].config
       $scope.state = $localStorage.projects[$stateParams.projectId].state
       this.canceler = $q.defer()
+      $scope.otherProjects = []
+      for (let project in $localStorage.projects) if (project !== $stateParams.projectId) $scope.otherProjects.push(project)
+      $scope.copyProject = (project: string) => {
+        $localStorage.projects[$stateParams.projectId] = $localStorage.projects[project]
+        $scope.config = $localStorage.projects[$stateParams.projectId].config
+        $scope.state = $localStorage.projects[$stateParams.projectId].state
+      }
       $scope.importProject = (file: File) => {
         if (!file) return
         let reader: FileReader = new FileReader()
