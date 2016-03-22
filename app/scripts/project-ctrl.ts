@@ -92,7 +92,8 @@ namespace fi.seco.recon {
           nomatch: 0
         },
         headings: [],
-        matchHeadings: []
+        descriptionHeadings: [],
+        additionalDescriptionHeadings: []
       }
       let state: IState = $localStorage.projects[$stateParams.projectId].state
       $scope.state = state
@@ -178,7 +179,12 @@ namespace fi.seco.recon {
             queries.forEach((q: IQuery) => { if (state.reconData[q.index]) delete state.reconData[q.index].candidates})
             $scope.error = undefined
             $scope.queryRunning = false
-            state.matchHeadings = response.data.head.vars.filter(pname => pname !== 'queryId' && pname !== 'entity' && pname !== 'label' && pname !== 'score')
+            state.descriptionHeadings = []
+            state.additionalDescriptionHeadings = []
+            response.data.head.vars.filter(pname => pname !== 'queryId' && pname !== 'entity' && pname !== 'label' && pname !== 'score').forEach(pname => {
+              if (pname.indexOf('_') === 0) state.additionalDescriptionHeadings.push(pname.substr(1))
+              else state.descriptionHeadings.push(pname)
+            })
             const candidatesHashes: {[id: string]: {[id: string]: ICandidate}} = {}
             response.data.results.bindings.filter(binding => binding['entity'] ? true : false).forEach((binding, index) => {
               if (!candidatesHashes[binding['queryId'].value]) candidatesHashes[binding['queryId'].value] = {}
@@ -188,9 +194,11 @@ namespace fi.seco.recon {
                 id: binding['entity'].value,
                 label: binding['label'].value,
                 color: 'rgb(127,' + Math.floor(127 + parseFloat(binding['score'].value) * 127) + ',127)',
-                description: []
+                description: [],
+                additionalDescription: []
               }
-              response.data.head.vars.filter(pname => pname !== 'queryId' && pname !== 'entity' && pname !== 'label' && pname !== 'score').forEach(pname => candidatesHash[binding['entity'].value].description.push(binding[pname] ? binding[pname].value : ''))
+              state.descriptionHeadings.forEach(pname => candidatesHash[binding['entity'].value].description.push(binding[pname] ? binding[pname].value : ''))
+              state.additionalDescriptionHeadings.forEach(pname => candidatesHash[binding['entity'].value].additionalDescription.push(binding['_' + pname] ? binding['_' + pname].value : ''))
             })
             for (let index in candidatesHashes) {
               if (!state.reconData[index]) state.reconData[index] = {match: undefined, notes: '', candidates: []}

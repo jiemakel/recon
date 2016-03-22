@@ -43,7 +43,8 @@ namespace fi.seco.recon {
       nomatch: number
     }
     headings: string[]
-    matchHeadings: string[]
+    descriptionHeadings: string[]
+    additionalDescriptionHeadings: string[]
   }
 
   export interface IReconData {
@@ -60,6 +61,7 @@ namespace fi.seco.recon {
     label: string
     color: string
     description: string[]
+    additionalDescription: string[]
   }
 
   export interface IBase64Service {
