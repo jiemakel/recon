@@ -293,7 +293,8 @@ namespace fi.seco.recon {
           else nrow.splice(1, 0, undefined, state.reconData[index].notes)
           data.push(nrow)
         })
-        saveAs(new Blob([Papa.unparse(data)], {type: 'text/csv'}), 'reconciled-' + state.fileName + (state.fileName.indexOf('.csv', state.fileName.length - 4) !== -1 ? '' : '.csv'))
+        let fn: string = 'reconciled-' + state.fileName.replace(/\..*?$/, '.csv')
+        saveAs(new Blob([Papa.unparse(data)], {type: 'text/csv'}), fn)
       }
       let init: (data: string[][]) => void = (data: string[][]) => {
         state.headings =  data[0].map((column, index) => $scope.firstRowIsHeader ? column : 'Column ' + index)
@@ -319,7 +320,7 @@ namespace fi.seco.recon {
       $scope.loadFile = (file: File) => {
         if (!file) return
         state.fileName = file.name
-        if (file.type === 'text/csv')
+        if (file.type.indexOf('text/') === 0)
           Papa.parse(file, { complete: (csv): void => {
             if (csv.errors.length !== 0)
               handleError({data: csv.errors.map(e => e.message).join('\n')})
