@@ -189,11 +189,12 @@ namespace fi.seco.recon {
             response.data.results.bindings.filter(binding => binding['entity'] ? true : false).forEach((binding, index) => {
               if (!candidatesHashes[binding['queryId'].value]) candidatesHashes[binding['queryId'].value] = {}
               const candidatesHash: {[id: string]: ICandidate} = candidatesHashes[binding['queryId'].value]
+              let color: number = Math.floor(127 + parseFloat(binding['score'].value) * 127)
               if (!candidatesHash[binding['entity'].value]) candidatesHash[binding['entity'].value] = {
                 index: index,
                 id: binding['entity'].value,
                 label: binding['label'].value,
-                color: 'rgb(127,' + Math.floor(127 + parseFloat(binding['score'].value) * 127) + ',127)',
+                color: 'rgb(' + color + ',' + color + ',' + color + ')',
                 description: [],
                 additionalDescription: []
               }
@@ -302,7 +303,7 @@ namespace fi.seco.recon {
           data.push(nrow)
         })
         let fn: string = 'reconciled-' + state.fileName.replace(/\..*?$/, '.csv')
-        saveAs(new Blob([Papa.unparse(data)], {type: 'text/csv'}), fn)
+        saveAs(new Blob(['\ufeff' + Papa.unparse(data)], {type: 'text/csv'}), fn)
       }
       let init: (data: string[][]) => void = (data: string[][]) => {
         state.headings =  data[0].map((column, index) => $scope.firstRowIsHeader ? column : 'Column ' + index)
