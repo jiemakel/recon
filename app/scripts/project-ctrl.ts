@@ -303,7 +303,7 @@ namespace fi.seco.recon {
           data.push(nrow)
         })
         let fn: string = 'reconciled-' + state.fileName.replace(/\..*?$/, '.csv')
-        saveAs(new Blob(['\ufeff' + Papa.unparse(data)], {type: 'text/csv'}), fn)
+        saveAs(new Blob([Papa.unparse(data)], {type: 'text/csv'}), fn)
       }
       let init: (data: string[][]) => void = (data: string[][]) => {
         state.headings =  data[0].map((column, index) => $scope.firstRowIsHeader ? column : 'Column ' + index)
