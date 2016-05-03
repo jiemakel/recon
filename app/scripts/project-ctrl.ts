@@ -92,7 +92,8 @@ namespace fi.seco.recon {
           nomatch: 0
         },
         headings: [],
-        matchHeadings: []
+        descriptionHeadings: [],
+        additionalDescriptionHeadings: []
       }
       let state: IState = $localStorage.projects[$stateParams.projectId].state
       $scope.state = state
@@ -178,19 +179,27 @@ namespace fi.seco.recon {
             queries.forEach((q: IQuery) => { if (state.reconData[q.index]) delete state.reconData[q.index].candidates})
             $scope.error = undefined
             $scope.queryRunning = false
-            state.matchHeadings = response.data.head.vars.filter(pname => pname !== 'queryId' && pname !== 'entity' && pname !== 'label' && pname !== 'score')
+            state.descriptionHeadings = []
+            state.additionalDescriptionHeadings = []
+            response.data.head.vars.filter(pname => pname !== 'queryId' && pname !== 'entity' && pname !== 'label' && pname !== 'score').forEach(pname => {
+              if (pname.indexOf('_') === 0) state.additionalDescriptionHeadings.push(pname.substr(1))
+              else state.descriptionHeadings.push(pname)
+            })
             const candidatesHashes: {[id: string]: {[id: string]: ICandidate}} = {}
             response.data.results.bindings.filter(binding => binding['entity'] ? true : false).forEach((binding, index) => {
               if (!candidatesHashes[binding['queryId'].value]) candidatesHashes[binding['queryId'].value] = {}
               const candidatesHash: {[id: string]: ICandidate} = candidatesHashes[binding['queryId'].value]
+              let color: number = Math.floor(127 + parseFloat(binding['score'].value) * 127)
               if (!candidatesHash[binding['entity'].value]) candidatesHash[binding['entity'].value] = {
                 index: index,
                 id: binding['entity'].value,
                 label: binding['label'].value,
-                color: 'rgb(127,' + Math.floor(127 + parseFloat(binding['score'].value) * 127) + ',127)',
-                description: []
+                color: 'rgb(' + color + ',' + color + ',' + color + ')',
+                description: [],
+                additionalDescription: []
               }
-              response.data.head.vars.filter(pname => pname !== 'queryId' && pname !== 'entity' && pname !== 'label' && pname !== 'score').forEach(pname => candidatesHash[binding['entity'].value].description.push(binding[pname] ? binding[pname].value : ''))
+              state.descriptionHeadings.forEach(pname => candidatesHash[binding['entity'].value].description.push(binding[pname] ? binding[pname].value : ''))
+              state.additionalDescriptionHeadings.forEach(pname => candidatesHash[binding['entity'].value].additionalDescription.push(binding['_' + pname] ? binding['_' + pname].value : ''))
             })
             for (let index in candidatesHashes) {
               if (!state.reconData[index]) state.reconData[index] = {match: undefined, notes: '', candidates: []}
@@ -293,7 +302,8 @@ namespace fi.seco.recon {
           else nrow.splice(1, 0, undefined, state.reconData[index].notes)
           data.push(nrow)
         })
-        saveAs(new Blob([Papa.unparse(data)], {type: 'text/csv'}), 'reconciled-' + state.fileName + (state.fileName.indexOf('.csv', state.fileName.length - 4) !== -1 ? '' : '.csv'))
+        let fn: string = 'reconciled-' + state.fileName.replace(/\..*?$/, '.csv')
+        saveAs(new Blob([Papa.unparse(data)], {type: 'text/csv'}), fn)
       }
       let init: (data: string[][]) => void = (data: string[][]) => {
         state.headings =  data[0].map((column, index) => $scope.firstRowIsHeader ? column : 'Column ' + index)
@@ -319,7 +329,7 @@ namespace fi.seco.recon {
       $scope.loadFile = (file: File) => {
         if (!file) return
         state.fileName = file.name
-        if (file.type === 'text/csv')
+        if (file.type.indexOf('text/') === 0)
           Papa.parse(file, { complete: (csv): void => {
             if (csv.errors.length !== 0)
               handleError({data: csv.errors.map(e => e.message).join('\n')})

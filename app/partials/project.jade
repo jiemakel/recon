@@ -22,6 +22,11 @@ script(type="text/ng-template",id="selectSheet")
         | Use first row as header
     input(type="number",ng-model="$parent.skipRows",placeholder="skip rows")
     button.btn.btn-success(ng-click="$close();loadSheet()") Load
+script(type="text/ng-template",id="popover")
+  table.table.table-condensed.table-bordered.table-striped
+    tr(ng-repeat="descr in candidate.additionalDescription track by $index")
+      th {{state.additionalDescriptionHeadings[$index]}}
+      td(ng-bind-html="descr | trustAsHtml")
 script(type="text/ng-template",id="loadSPARQL")
   .modal-header
     h3.modal-title Load from a SPARQL endpoint
@@ -44,7 +49,7 @@ script(type="text/ng-template",id="loadSPARQL")
           th(ng-repeat="header in state.headings track by $index") {{header}}
           th Match
           th Notes
-          th(ng-repeat="header in state.matchHeadings track by $index") {{header}}
+          th(ng-repeat="header in state.descriptionHeadings track by $index") {{header}}
         tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.currentOffset")
           td(ng-class="state.reconData[state.currentOffset + $index].match ? 'has-success' : (state.reconData[state.currentOffset + $index].match === null ? 'has-warning' : 'has-error')")
             input.form-control(tooltip-placement="right",uib-tooltip="{{state.reconData[state.currentOffset + $index].match.id ? state.reconData[state.currentOffset + $index].match.label + ' (' + state.reconData[state.currentOffset + $index].match.id + ')' : ''}}",select-on-focus,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-model-options="{debounce: 300}",ng-focus="focus(state.currentOffset + $index,input)",ng-change="search(state.currentOffset + $index,input)")
@@ -84,12 +89,12 @@ script(type="text/ng-template",id="loadSPARQL")
         tr
           th
           th Match
-          th(ng-repeat="header in state.matchHeadings track by $index") {{header}}
+          th(ng-repeat="header in state.descriptionHeadings track by $index") {{header}}
         tr(ng-class="state.reconData[state.currentRow].match === null ? 'info' : 'warning'")
           th 0
           th(ng-click="deselect()",style="cursor:pointer") None of the below
           td(ng-repeat="descr in state.reconData[state.currentRow].candidates[0].description track by $index")
-        tr(ng-repeat="candidate in state.reconData[state.currentRow].candidates | limitTo : 29",ng-style="{'background-color':candidate.color}",ng-class="candidate.id==state.reconData[state.currentRow].match.id ? 'info' : ''")
+        tr(ng-repeat="candidate in state.reconData[state.currentRow].candidates | limitTo : 29",ng-style="{'background-color':candidate.color}",ng-class="candidate.id==state.reconData[state.currentRow].match.id ? 'info' : ''",popover-enable="candidate.additionalDescription.length!=0",popover-trigger="mouseenter",uib-popover-template="'popover'")
           th(ng-if="$index<9",ng-click="select($index)",style="cursor:pointer") {{$index+1}}
           th(ng-if="$index>=9",ng-click="select($index)",style="cursor:pointer") -
           th(ng-click="select($index)",style="cursor:pointer") {{candidate.label}}
