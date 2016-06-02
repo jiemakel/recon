@@ -51,7 +51,7 @@ script(type="text/ng-template",id="loadSPARQL")
           th Notes
           th(ng-repeat="header in state.descriptionHeadings track by $index") {{header}}
         tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.currentOffset")
-          td(ng-class="state.reconData[state.currentOffset + $index].match ? 'has-success' : (state.reconData[state.currentOffset + $index].match === null ? 'has-warning' : 'has-error')")
+          td(ng-class="state.reconData[state.currentOffset + $index].match ? 'success' : (state.reconData[state.currentOffset + $index].match === null ? 'warning' : 'danger')")
             input.form-control(tooltip-placement="right",uib-tooltip="{{state.reconData[state.currentOffset + $index].match.id ? state.reconData[state.currentOffset + $index].match.label + ' (' + state.reconData[state.currentOffset + $index].match.id + ')' : ''}}",select-on-focus,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-model-options="{debounce: 300}",ng-focus="focus(state.currentOffset + $index,input)",ng-change="search(state.currentOffset + $index,input)")
             span(ng-if="reviewing",style="visibility:hidden;white-space:nowrap") {{row[0]}}
           td(ng-if="reviewing",ng-repeat="value in row | limitTo:100:1 track by $index ") {{value}}

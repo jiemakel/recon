@@ -33,11 +33,11 @@ namespace fi.seco.recon {
   }
 
   class Sheet {
+    public data: string[][] = []
+    public active: boolean = false
     constructor(
       public name: string
     ) {}
-    public data: string[][] = []
-    public active: boolean = false
   }
 
   interface IParams {
