@@ -65,6 +65,7 @@ script(type="text/ng-template",id="loadSPARQL")
         | &nbsp;{{state.data.length - state.counts.match - state.counts.nomatch}}
       .clearfix
         button.btn.btn-success(ng-click="reviewing=!reviewing") Review
+        button.btn.btn-success(ng-click="sort()") Sort
         button.btn.btn-success(ngf-select,ngf-change="loadFile($files[0])",ngf-multiple="false") Load File
         button.btn.btn-success(ng-click="openSPARQL()") Load SPARQL
         button.btn.btn-warning(ng-click="saveCSVFile()",ng-show="state.data.length>0") Export CSV

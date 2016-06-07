@@ -24,6 +24,7 @@ namespace fi.seco.recon {
     sheets: Sheet[]
     skipRows: number
     firstRowIsHeader: boolean
+    sort: () => void
   }
 
   interface IError {
@@ -287,6 +288,40 @@ namespace fi.seco.recon {
           scope: $scope,
           size: 'lg'
         })
+      }
+      $scope.sort = () => {
+        let rowNumbers: number[] = $scope.state.data.map((a, index) => index)
+        rowNumbers.sort((ar: number, br: number) => {
+          let a: IReconData = $scope.state.reconData[ar]
+          let b: IReconData = $scope.state.reconData[br]
+          if (!a) {
+            if (b) return -1
+            else return 0
+          } else
+            if (!b) return 1
+          switch (a.match) {
+            case undefined:
+              if (b.match === undefined) return 0
+              return -1
+            case null:
+              switch (b.match) {
+                case undefined: return 1
+                case null: return 0
+                default: return -1
+              }
+            default:
+              if (!b.match) return 1;
+              return 0;
+          }
+        })
+        let ndata: string[][] = []
+        let nreconData: IReconData[] = []
+        rowNumbers.forEach(n => {
+          ndata.push($scope.state.data[n])
+          nreconData.push($scope.state.reconData[n])
+        })
+        $scope.state.data = ndata
+        $scope.state.reconData = nreconData
       }
       $scope.saveCSVFile = () => {
         let data: string[][] = []
