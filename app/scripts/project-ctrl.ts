@@ -166,7 +166,7 @@ namespace fi.seco.recon {
         queries.forEach((q: IQuery) => {
           let currentQuery: string = queryParts[1].replace(/<QUERY_ID>/g, '' + q.index).replace(/<QUERY>/g, sparqlService.stringToSPARQLString(q.text))
           state.data[q.index].forEach((value: string, index: number) => {
-            currentQuery = currentQuery.replace(new RegExp('<CELL_' + index + '>', 'g'), sparqlService.stringToSPARQLString(value))
+            if (value !== null && value !== undefined) currentQuery = currentQuery.replace(new RegExp('<CELL_' + index + '>', 'g'), sparqlService.stringToSPARQLString(value))
           })
           queryText += '{' + currentQuery + '} UNION'
         })
