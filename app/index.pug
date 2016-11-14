@@ -8,7 +8,7 @@ html(lang="en",ng-app="app")
     link(rel='stylesheet', href='bower_components/yasgui-yasqe/dist/yasqe.css')
     link(rel='stylesheet', href='bower_components/bootstrap/dist/css/bootstrap.css')
     link(rel='stylesheet', href='bower_components/font-awesome/css/font-awesome.css')
-    link(rel='stylesheet', href='bower_components/angular-hotkeys/build/hotkeys.min.css')
+    link(rel='stylesheet', href='bower_components/angular-hotkeys/build/hotkeys.css')
     // endbower
     // endbuild
     // build:css(.tmp) styles/main.css
@@ -42,7 +42,7 @@ html(lang="en",ng-app="app")
     script(src='bower_components/ng-file-upload/ng-file-upload.js')
     script(src='bower_components/angular-bootstrap/ui-bootstrap-tpls.js')
     script(src='bower_components/bootstrap/dist/js/bootstrap.js')
-    script(src='bower_components/angular-hotkeys/build/hotkeys.min.js')
+    script(src='bower_components/angular-hotkeys/build/hotkeys.js')
     script(src='bower_components/ng-focus-on/ng-focus-on.js')
     script(src='bower_components/FileSaver/FileSaver.js')
     script(src='bower_components/angular-sparql-service/dist/sparql-service.js')
@@ -53,10 +53,10 @@ html(lang="en",ng-app="app")
     // endbuild
 
     // build:js(.tmp) scripts/main.js
-    script(src="scripts/app.js")
-    script(src="scripts/project-ctrl.js")
-    script(src="scripts/projectlist-ctrl.js")
-    script(src="scripts/config-ctrl.js")
+    script(src="components/app.js")
+    script(src="components/project-ctrl.js")
+    script(src="components/projectlist-ctrl.js")
+    script(src="components/config-ctrl.js")
     // inject:partials
     // endinject
     // endbuild

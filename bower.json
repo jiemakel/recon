@@ -2,24 +2,24 @@
   "name": "recon",
   "version": "0.0.0",
   "dependencies": {
-    "angular": "~1.4.8",
-    "jquery": "~2.2.0",
-    "angular-ui-router": "~0.2.15",
-    "ngstorage": "~0.3.10",
-    "angular-http-auth": "~1.2.3",
-    "yasgui-yasqe": "~2.8.2",
-    "papa.parse": "~4.1.2",
-    "ng-file-upload": "~11.1.1",
-    "angular-bootstrap": "~1.0.3",
-    "bootstrap": "~3.3.6",
-    "font-awesome": "~4.5.0",
-    "angular-hotkeys": "chieffancypants/angular-hotkeys",
-    "ng-focus-on": "~0.2.2",
     "FileSaver": "*",
-    "angular-sparql-service": "~1.0.1",
-    "angular-yasqe-directive": "~1.0.0",
-    "angular-utf8-base64": "~0.0.5",
-    "js-xlsx": "~0.8.0"
+    "angular": "1.5.8",
+    "angular-bootstrap": "2.2.0",
+    "angular-hotkeys": "chieffancypants/angular-hotkeys",
+    "angular-http-auth": "1.4.1",
+    "angular-sparql-service": "1.2.0",
+    "angular-ui-router": "0.3.2",
+    "angular-utf8-base64": "0.0.5",
+    "angular-yasqe-directive": "1.0.0",
+    "bootstrap": "3.3.7",
+    "font-awesome": "4.7.0",
+    "jquery": "3.1.1",
+    "js-xlsx": "0.8.0",
+    "ng-file-upload": "12.2.13",
+    "ng-focus-on": "0.2.2",
+    "ngstorage": "0.3.11",
+    "papa.parse": "4.1.2",
+    "yasgui-yasqe": "2.11.5"
   },
   "overrides": {
     "bootstrap": {
@@ -57,6 +57,7 @@
   },
   "devDependencies": {},
   "resolutions": {
-    "angular": "~1.4.8"
+    "angular": "1.5.8",
+    "yasgui-yasqe": "2.11.5"
   }
 }

@@ -164,9 +164,9 @@ namespace fi.seco.recon {
         const queryParts: string[] = config.matchQuery.split(/[\{\}] # \/?QUERY/)
         let queryText: string = queryParts[0]
         queries.forEach((q: IQuery) => {
-          let currentQuery: string = queryParts[1].replace(/<QUERY_ID>/g, '' + q.index).replace(/<QUERY>/g, sparqlService.stringToSPARQLString(q.text))
+          let currentQuery: string = queryParts[1].replace(/<QUERY_ID>/g, '' + q.index).replace(/<QUERY>/g, s.SparqlService.stringToSPARQLString(q.text))
           state.data[q.index].forEach((value: string, index: number) => {
-            if (value !== null && value !== undefined) currentQuery = currentQuery.replace(new RegExp('<CELL_' + index + '>', 'g'), sparqlService.stringToSPARQLString(value))
+            if (value !== null && value !== undefined) currentQuery = currentQuery.replace(new RegExp('<CELL_' + index + '>', 'g'), s.SparqlService.stringToSPARQLString(value))
           })
           queryText += '{' + currentQuery + '} UNION'
         })
@@ -364,7 +364,7 @@ namespace fi.seco.recon {
       $scope.loadFile = (file: File) => {
         if (!file) return
         state.fileName = file.name
-        if (file.type.indexOf('text/') === 0)
+        if (file.type.indexOf('text/') === 0 || file.name.lastIndexOf('.csv') === file.name.length - 4 || file.name.lastIndexOf('.tsv') === file.name.length - 4)
           Papa.parse(file, { complete: (csv): void => {
             if (csv.errors.length !== 0)
               handleError({data: csv.errors.map(e => e.message).join('\n')})

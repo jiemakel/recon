@@ -16,17 +16,17 @@ namespace fi.seco.recon {
     $urlRouterProvider.otherwise('/')
     $stateProvider.state('projectlist', {
       url: '/',
-      templateUrl: 'partials/projectlist.html',
+      templateUrl: 'components/projectlist.html',
       controller: 'ProjectListController'
     })
     $stateProvider.state('project', {
       url: '/:projectId/',
-      templateUrl: 'partials/project.html',
+      templateUrl: 'components/project.html',
       controller: 'ProjectController'
     })
     $stateProvider.state('configure', {
       url: '/:projectId/configure',
-      templateUrl: 'partials/configure.html',
+      templateUrl: 'components/configure.html',
       controller: 'ConfigureController'
     })
   })

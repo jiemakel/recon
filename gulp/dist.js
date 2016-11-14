@@ -4,24 +4,37 @@ var uglifySaveLicense = require('uglify-save-license');
 var $ = require('gulp-load-plugins')();
 
 gulp.task('dist:partials', function() {
-  return gulp.src(".tmp/partials/**/*.html")
+  return gulp.src(".tmp/components/**/*.html")
     .pipe($.plumber({ errorHandler: $.notify.onError("<%= error.stack %>") }))
     .pipe($.ngHtml2js({
       moduleName: "app",
-      prefix: "partials/"
+      prefix: "components/"
     }))
-    .pipe(gulp.dest(".tmp/partials"));
+    .pipe($.concat("partials.js"))
+    .pipe(gulp.dest(".tmp"));
 });
 
-gulp.task('dist:html', ['dist:partials'], function() {
-  var jsFilter = $.filter("**/*.js", {restore: true});
-  var cssFilter = $.filter("**/*.css", {restore: true});
+gulp.task('dist:wire:bundle-workerscripts', function() {
+  return gulp.src("worker.conf")
+    .pipe($.plumber({ errorHandler: $.notify.onError("<%= error.stack %>") }))
+    .pipe($.transform(function(contents) {
+      return contents.toString('utf8').replace(/\n/g,'"></script>\n<script src="').replace(/^/,'<!-- build:js({.tmp,app}) scripts/worker.js-->\n<script src="').replace(/<script src="$/,'<!-- endbuild-->\n')
+     }))
+    .pipe($.useref())
+    .pipe($.filter('scripts/worker.js'))
+    .pipe($.rev())
+    .pipe($.print(function(path) { return "dist:worker-js(1) " + path; }))
+    .pipe(gulp.dest("dist"));
+});
+
+gulp.task('dist:html', ['dist:wire:bundle-workerscripts','dist:partials'], function() {
+  var jsFilter = $.filter(".tmp/**/*.js", {restore: true});
+  var cssFilter = $.filter(".tmp/**/*.css", {restore: true});
   return gulp.src(".tmp/*.html")
     .pipe($.plumber({ errorHandler: $.notify.onError("<%= error.stack %>") }))
     .pipe($.print(function(path) { return "dist:html(1) " + path; }))
     .pipe($.size({ title: 'dist:html(1)' }))
-    .pipe($.inject(gulp.src(".tmp/partials/**/*.js"), {
-      read: false,
+    .pipe($.inject(gulp.src(".tmp/partials.js", {read:false}), {
       starttag: "<!-- inject:partials-->",
       endtag: "<!-- endinject-->",
       addRootSlash: false,
@@ -29,10 +42,20 @@ gulp.task('dist:html', ['dist:partials'], function() {
     }))
     .pipe($.useref())
     .pipe(jsFilter)
+    .pipe($.inject(gulp.src("dist/scripts/worker-*.js", {read:false}), {
+      starttag: "importScripts: [",
+      endtag: "]",
+      addRootSlash: false,
+      ignorePath: 'dist/',
+      transform: function(filepath) {
+        return filepath.replace(/^/,'\'').replace(/$/,'\'')
+      }
+    }))
     .pipe($.rev())
     .pipe($.print(function(path) { return "dist:html-js(1) " + path; }))
     .pipe($.size({ title: 'dist:html-js(1)' }))
-    .pipe($.ngAnnotate()).pipe($.uglify({ preserveComments: uglifySaveLicense }))
+    .pipe($.ngAnnotate())
+    .pipe($.uglify({ preserveComments: uglifySaveLicense }))
     .pipe($.print(function(path) { return "dist:html-js(2) " + path; }))
     .pipe($.size({ title: 'dist:html-js(2)' }))
     .pipe(jsFilter.restore)
@@ -42,7 +65,7 @@ gulp.task('dist:html', ['dist:partials'], function() {
     .pipe($.size({ title: 'dist:html-css(1)' }))
     .pipe($.replace(/url\(".*?\/(\w+\.(eot|svg|ttf|woff|woff2).*?)"\)/g, 'url("$1")'))
     .pipe($.replace(/url\(".*?\/(\w+?\.(png|jpg|jpeg))"\)/g, 'url("$1")'))
-    .pipe($.minifyCss({ processImport: false }))
+    .pipe($.cleanCss())
     .pipe($.print(function(path) { return "dist:html-css(2) " + path; }))
     .pipe($.size({ title: 'dist:html-css(2)' }))
     .pipe(cssFilter.restore)

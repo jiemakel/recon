@@ -3,7 +3,7 @@ script(type="text/ng-template",id="selectSheet")
     h3.modal-title Preview
   .modal-body
     uib-tabset
-      uib-tab(ng-repeat="sheet in sheets",heading="{{sheet.name}}",active="sheet.active")
+      uib-tab(ng-repeat="sheet in sheets",heading="{{sheet.name}}",deselect="sheet.active=false",select="sheet.active=true")
         div(ng-show="error")
           h4 {{error.status}}
             button.pull-right.btn.btn-xs.btn-danger(ng-click="$parent.error='';queryRunning=false") X
@@ -11,7 +11,7 @@ script(type="text/ng-template",id="selectSheet")
           pre.pre-scrollable {{error.data}}
           pre(ng-show="error.config").pre-scrollable {{error.config}}
         div(style="overflow:scroll;max-height:500px"): table.table.table-bordered.table-striped
-          tr 
+          tr
             th(ng-if="firstRowIsHeader",ng-repeat="header in sheet.data[0] track by $index") {{header}}
             th(ng-if="!firstRowIsHeader",ng-repeat="header in sheet.data[0] track by $index") Column {{$index}}
           tr(ng-repeat="row in sheet.data | limitTo:10:(skipRows+(firstRowIsHeader ? 1 : 0)) track by $index"): td(ng-repeat="column in row track by $index") {{column}}
@@ -39,7 +39,7 @@ script(type="text/ng-template",id="loadSPARQL")
       yasqe(data="state.loadQuery")
       yasr
   .modal-footer
-    button.btn.btn-success(ng-click="$close();loadSPARQL()") Ok    
+    button.btn.btn-success(ng-click="$close();loadSPARQL()") Ok
 .container-fluid(style="max-width:97%")
   .row
     div(ng-class="reviewing ? 'col-xs-12' : 'col-xs-3'")
@@ -70,7 +70,7 @@ script(type="text/ng-template",id="loadSPARQL")
         button.btn.btn-success(ng-click="openSPARQL()") Load SPARQL
         button.btn.btn-warning(ng-click="saveCSVFile()",ng-show="state.data.length>0") Export CSV
         button.btn.btn-default(ui-sref="configure({projectId:projectId})") Configure
-        button.btn.btn-default(ui-sref="projectlist") Back to project list 
+        button.btn.btn-default(ui-sref="projectlist") Back to project list
     .col-xs-9(style="max-height:95vh;overflow-y:auto",ng-if="!reviewing")
       i.fa.fa-spinner.fa-spin(ng-show="queryRunning && !error")
       div(ng-show="error")
