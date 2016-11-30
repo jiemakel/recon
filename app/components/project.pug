@@ -58,7 +58,7 @@ script(type="text/ng-template",id="loadSPARQL")
           td(ng-if="reviewing",ng-class="state.reconData[state.currentOffset + $index].match ? 'info' : (state.reconData[state.currentOffset + $index].match === null ? 'warning' : 'danger')") {{state.reconData[state.currentOffset + $index].match.id ? state.reconData[state.currentOffset + $index].match.label + ' (' + state.reconData[state.currentOffset + $index].match.id + ')' : ( state.reconData[state.currentOffset + $index].match === null ? 'none' : 'not processed')}}
           td(ng-if="reviewing",style="white-space: pre-line") {{state.reconData[state.currentOffset + $index].notes}}
           td.info(ng-if="reviewing",ng-repeat="descr in state.reconData[state.currentOffset + $index].match.description track by $index",ng-bind-html="descr | trustAsHtml")
-      uib-pagination.pagination-sm(ng-model="currentPage",items-per-page="config.pageSize",max-size="4",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
+      ul.pagination-sm(uib-pagination ng-model="currentPage",items-per-page="config.pageSize",max-size="4",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
       uib-progress
         uib-bar(type="success",value="100 * state.counts.match / state.data.length") {{state.counts.match}}
         uib-bar(type="warning",value="100 * state.counts.nomatch / state.data.length") {{state.counts.nomatch}}
