@@ -256,6 +256,7 @@ namespace fi.seco.recon {
                 }
               })
             });
+            state.fileName = "sparql-results.json"
             state.data = []
             /* tslint:disable:no-var-keyword */
             for (var id in data) { // can't use let
