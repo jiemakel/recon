@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-    <link rel="stylesheet" href="styles/vendor-bff55af6b7.css">
-    <link rel="stylesheet" href="styles/main-e53655d998.css">
+    <link rel="stylesheet" href="styles/vendor-8b0409dce6.css">
+    <link rel="stylesheet" href="styles/main-8497d6a1db.css">
     <title>recon</title>
   </head>
   <body>
-    <div ng-class="authInfo.authOpen ? 'modal-open fade in' : ''" ng-style="authInfo.authOpen ? {display:'block'} : {}" class="modal">
-      <div ng-show="authInfo.authOpen" class="modal-dialog">
+    <div class="modal" ng-class="authInfo.authOpen ? 'modal-open fade in' : ''" ng-style="authInfo.authOpen ? {display:'block'} : {}">
+      <div class="modal-dialog" ng-show="authInfo.authOpen">
         <form class="modal-content">
           <div class="modal-header">
             <h4 class="modal-title">Authentication required</h4>
@@ -17,23 +17,23 @@
           <div class="modal-body">
             <div class="form-group">
               <label>Username:</label>
-              <input type="text" ng-model="authInfo.username" class="form-control">
+              <input class="form-control" type="text" ng-model="authInfo.username">
             </div>
             <div class="form-group">
               <label>Password:</label>
-              <input type="password" ng-model="authInfo.password" class="form-control">
+              <input class="form-control" type="password" ng-model="authInfo.password">
             </div>
           </div>
           <div class="modal-footer">
-            <button ng-click="setAuth()" class="btn btn-success">Ok</button>
-            <button ng-click="dismissAuth()" class="btn btn-danger">Cancel</button>
+            <button class="btn btn-success" ng-click="setAuth()">Ok</button>
+            <button class="btn btn-danger" ng-click="dismissAuth()">Cancel</button>
           </div>
         </form>
       </div>
     </div>
     <main ui-view=""></main>
-    <script src="scripts/vendor-f502c0f9a5.js"></script>
-    <script src="scripts/main-ffc0c624cd.js"></script>
-    <div ng-show="authInfo.authOpen" class="modal-backdrop fade in"></div>
+    <script src="scripts/vendor-9c0e581040.js"></script>
+    <script src="scripts/main-af65fa1d1f.js"></script>
+    <div class="modal-backdrop fade in" ng-show="authInfo.authOpen"></div>
   </body>
 </html>
