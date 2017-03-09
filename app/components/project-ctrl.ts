@@ -268,7 +268,6 @@ namespace fi.seco.recon {
                 for (let val in data[id][currentVar]) ccell += val + ', '
                 cdata.push(ccell.substr(0, ccell.length - 2))
               })
-              cdata.splice(1, 0, id)
               state.data.push(cdata)
             }
             state.currentRow = 0
