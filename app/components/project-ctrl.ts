@@ -256,6 +256,7 @@ namespace fi.seco.recon {
                 }
               })
             });
+            state.headings = response.data.head.vars
             state.fileName = "sparql-results.json"
             state.data = []
             /* tslint:disable:no-var-keyword */
