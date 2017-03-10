@@ -48,11 +48,13 @@ namespace fi.seco.recon {
   }
 
   export interface IReconData {
-    match: {
-      id: string
-    }
+    matches: IMatch[]
     notes: string
     candidates: ICandidate[]
+  }
+
+  export interface IMatch {
+    id: string
   }
 
   export interface ICandidate {

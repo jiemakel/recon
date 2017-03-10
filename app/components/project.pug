@@ -51,13 +51,13 @@ script(type="text/ng-template",id="loadSPARQL")
           th Notes
           th(ng-repeat="header in state.descriptionHeadings track by $index") {{header}}
         tr(ng-repeat="row in state.data | limitTo : config.pageSize : state.currentOffset")
-          td(ng-class="state.reconData[state.currentOffset + $index].match ? 'success' : (state.reconData[state.currentOffset + $index].match === null ? 'warning' : 'danger')")
-            input.form-control(tooltip-placement="right",uib-tooltip="{{state.reconData[state.currentOffset + $index].match.id ? state.reconData[state.currentOffset + $index].match.label + ' (' + state.reconData[state.currentOffset + $index].match.id + ')' : ''}}",select-on-focus,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-model-options="{debounce: 300}",ng-focus="focus(state.currentOffset + $index,input)",ng-change="search(state.currentOffset + $index,input)")
+          td(ng-class="state.reconData[state.currentOffset + $index].matches ? 'success' : (state.reconData[state.currentOffset + $index].matches === null ? 'warning' : 'danger')")
+            input.form-control(tooltip-placement="right",uib-tooltip="{{state.reconData[state.currentOffset + $index].matches[0].id ? state.reconData[state.currentOffset + $index].matches[0].label + ' (' + state.reconData[state.currentOffset + $index].matches[0].id + ')' + (state.reconData[state.currentOffset + $index].matches.length>1 ? ' + ' + (state.reconData[state.currentOffset + $index].matches.length-1) + ' other(s)' : '') : ''}}",select-on-focus,focus-on="row{{state.currentOffset + $index}}",type="text",ng-init="input=row[0]",ng-model="input",ng-model-options="{debounce: 300}",ng-focus="focus(state.currentOffset + $index,input)",ng-change="search(state.currentOffset + $index,input)")
             span(ng-if="reviewing",style="visibility:hidden;white-space:nowrap") {{row[0]}}
           td(ng-if="reviewing",ng-repeat="value in row | limitTo:100:1 track by $index ") {{value}}
-          td(ng-if="reviewing",ng-class="state.reconData[state.currentOffset + $index].match ? 'info' : (state.reconData[state.currentOffset + $index].match === null ? 'warning' : 'danger')") {{state.reconData[state.currentOffset + $index].match.id ? state.reconData[state.currentOffset + $index].match.label + ' (' + state.reconData[state.currentOffset + $index].match.id + ')' : ( state.reconData[state.currentOffset + $index].match === null ? 'none' : 'not processed')}}
+          td(ng-if="reviewing",ng-class="state.reconData[state.currentOffset + $index].matches ? 'info' : (state.reconData[state.currentOffset + $index].matches === null ? 'warning' : 'danger')") {{state.reconData[state.currentOffset + $index].matches[0].id ? state.reconData[state.currentOffset + $index].matches[0].label + ' (' + state.reconData[state.currentOffset + $index].matches[0].id + ')' + (state.reconData[state.currentOffset + $index].matches.length>1 ? ' + ' + (state.reconData[state.currentOffset + $index].matches.length-1) + ' other(s)' : '') : ( state.reconData[state.currentOffset + $index].matches === null ? 'none' : 'not processed')}}
           td(ng-if="reviewing",style="white-space: pre-line") {{state.reconData[state.currentOffset + $index].notes}}
-          td.info(ng-if="reviewing",ng-repeat="descr in state.reconData[state.currentOffset + $index].match.description track by $index",ng-bind-html="descr | trustAsHtml")
+          td.info(ng-if="reviewing",ng-repeat="descr in state.reconData[state.currentOffset + $index].matches[0].description track by $index",ng-bind-html="descr | trustAsHtml")
       ul.pagination-sm(uib-pagination ng-model="currentPage",items-per-page="config.pageSize",max-size="4",total-items="state.data.length",boundary-links="true",previous-text="‹",next-text="›",first-text="«",last-text="»")
       uib-progress
         uib-bar(type="success",value="100 * state.counts.match / state.data.length") {{state.counts.match}}
@@ -91,14 +91,14 @@ script(type="text/ng-template",id="loadSPARQL")
           th
           th Match
           th(ng-repeat="header in state.descriptionHeadings track by $index") {{header}}
-        tr(ng-class="state.reconData[state.currentRow].match === null ? 'info' : 'warning'")
+        tr(ng-class="state.reconData[state.currentRow].matches === null ? 'info' : 'warning'")
           th 0
           th(ng-click="deselect()",style="cursor:pointer") None of the below
           td(ng-repeat="descr in state.reconData[state.currentRow].candidates[0].description track by $index")
-        tr(ng-repeat="candidate in state.reconData[state.currentRow].candidates | limitTo : 29",ng-style="{'background-color':candidate.color}",ng-class="candidate.id==state.reconData[state.currentRow].match.id ? 'info' : ''",popover-enable="candidate.additionalDescription.length!=0",popover-trigger="mouseenter",uib-popover-template="'popover'")
+        tr(ng-repeat="candidate in state.reconData[state.currentRow].candidates | limitTo : 29",ng-style="{'background-color':candidate.color}",ng-class="state.reconData[state.currentRow].matches && isIdInObjectArray(candidate.id, state.reconData[state.currentRow].matches) ? 'info' : ''",popover-enable="candidate.additionalDescription.length!=0",popover-trigger="mouseenter",uib-popover-template="'popover'")
           th(ng-if="$index<9",ng-click="select($index)",style="cursor:pointer") {{$index+1}}
           th(ng-if="$index>=9",ng-click="select($index)",style="cursor:pointer") -
-          th(ng-click="select($index)",style="cursor:pointer") {{candidate.label}}
+          th(ng-click="select($index,$event)",style="cursor:pointer") {{candidate.label}}
           td(ng-repeat="descr in candidate.description track by $index",ng-bind-html="descr | trustAsHtml")
       button.btn.btn-block.btn-danger(ng-show="state.reconData[state.currentRow].candidates.length==30") ...
     .row
