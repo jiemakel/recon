@@ -277,7 +277,8 @@ namespace fi.seco.recon {
                 }
               })
             });
-            state.headings = response.data.head.vars
+            for (var index in response.data.head.vars)
+              state.headings[index] = response.data.head.vars[index].replace(/_/g, " ")
             state.fileName = "sparql-results.json"
             state.data = []
             /* tslint:disable:no-var-keyword */

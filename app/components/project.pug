@@ -80,14 +80,14 @@ script(type="text/ng-template",id="loadSPARQL")
         pre.pre-scrollable {{error.data}}
         pre(ng-show="error.config").pre-scrollable {{error.config}}
       table.table.table-bordered.table-striped
-        tr: th(ng-repeat="header in state.headings track by $index") {{header}}
+        tr.header: th(ng-repeat="header in state.headings track by $index") {{header}}
         tr: td(ng-repeat="value in state.data[state.currentRow] track by $index") {{value}}
       .form-group
         label Notes
         textarea.form-control(ng-model="state.reconData[state.currentRow].notes")
       button.btn.btn-block.btn-warning(ng-show="!state.reconData[state.currentRow].candidates") ?
       table.table.table-bordered.table-striped
-        tr
+        tr.header
           th
           th Match
           th(ng-repeat="header in state.descriptionHeadings track by $index") {{header}}
