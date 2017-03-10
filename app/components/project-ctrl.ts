@@ -223,8 +223,6 @@ namespace fi.seco.recon {
               state.descriptionHeadings.forEach(pname => candidatesHash[binding['entity'].value].description.push(binding[pname] ? binding[pname].value : ''))
               state.additionalDescriptionHeadings.forEach(pname => candidatesHash[binding['entity'].value].additionalDescription.push(binding['_' + pname] ? binding['_' + pname].value : ''))
 
-              for (let index in state.descriptionHeadings)
-                state.descriptionHeadings[index] = state.descriptionHeadings[index].replace(/_/g, " ")
             })
             for (let index in candidatesHashes) {
               if (!state.reconData[index]) state.reconData[index] = {matches: undefined, notes: '', candidates: []}
@@ -280,8 +278,7 @@ namespace fi.seco.recon {
                 }
               })
             });
-            for (var index in response.data.head.vars)
-              state.headings[index] = response.data.head.vars[index].replace(/_/g, " ")
+            state.headings = response.data.head.vars
             state.fileName = "sparql-results.json"
             state.data = []
             /* tslint:disable:no-var-keyword */
