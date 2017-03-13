@@ -95,7 +95,7 @@ script(type="text/ng-template",id="loadSPARQL")
           th 0
           th(ng-click="deselect()",style="cursor:pointer") None of the below
           td(ng-repeat="descr in state.reconData[state.currentRow].candidates[0].description track by $index")
-        tr(ng-repeat="candidate in state.reconData[state.currentRow].candidates | limitTo : 29",ng-style="{'background-color':candidate.color}",ng-class="state.reconData[state.currentRow].matches && isIdInObjectArray(candidate.id, state.reconData[state.currentRow].matches) ? 'info' : ''",popover-enable="candidate.additionalDescription.length!=0",popover-trigger="mouseenter",uib-popover-template="'popover'")
+        tr(ng-repeat="candidate in state.reconData[state.currentRow].candidates | limitTo : 29",ng-style="{'background-color':candidate.color}",ng-class="state.reconData[state.currentRow].matches && isIdInObjectArray(candidate.id, state.reconData[state.currentRow].matches) ? 'info' : ''",popover-enable="candidate.additionalDescription.length!=0",popover-trigger="'mouseenter'",uib-popover-template="'popover'")
           th(ng-if="$index<9",ng-click="select($index)",style="cursor:pointer") {{$index+1}}
           th(ng-if="$index>=9",ng-click="select($index)",style="cursor:pointer") -
           th(ng-click="select($index,$event)",style="cursor:pointer") {{candidate.label}}
