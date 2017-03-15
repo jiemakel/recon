@@ -469,6 +469,7 @@ namespace fi.seco.recon {
             if (($scope.currentPage - 1) * config.pageSize > state.data.length) $scope.currentPage = 1
           } else focus('row' + (state.currentRow + 1))
         }
+        document.getSelection().removeAllRanges()
       }
       $scope.focus = (index, text) => {
         $scope.reviewing = false
