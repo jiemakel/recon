@@ -172,7 +172,17 @@ namespace fi.seco.recon {
             if (state.reconData[state.currentRow].matches === null) state.counts.nomatch--
             state.reconData[state.currentRow].matches = []
           }
-          if (selection) state.reconData[state.currentRow].matches.push(selection)
+          if (selection) {
+            if (state.reconData[state.currentRow].matches.filter(match => match.id === selection.id).length > 0) {
+              state.reconData[state.currentRow].matches = state.reconData[state.currentRow].matches.filter(match => match.id !== selection.id)
+              if (state.reconData[state.currentRow].matches.length == 0) {
+                state.counts.match--
+                state.reconData[state.currentRow].matches = undefined
+              }
+            }
+          else
+            state.reconData[state.currentRow].matches.push(selection)
+          }
           event.preventDefault()
         }
       })
@@ -459,7 +469,15 @@ namespace fi.seco.recon {
           state.reconData[state.currentRow].matches = []
         }
         if ($event.shiftKey)
-          state.reconData[state.currentRow].matches.push(state.reconData[state.currentRow].candidates[index])
+          if (state.reconData[state.currentRow].matches.filter(match => match.id === state.reconData[state.currentRow].candidates[index].id).length > 0) {
+            state.reconData[state.currentRow].matches = state.reconData[state.currentRow].matches.filter(match => match.id !== state.reconData[state.currentRow].candidates[index].id)
+            if (state.reconData[state.currentRow].matches.length == 0) {
+              state.counts.match--
+              state.reconData[state.currentRow].matches = undefined
+            }
+          }
+          else
+            state.reconData[state.currentRow].matches.push(state.reconData[state.currentRow].candidates[index])
         else {
           state.reconData[state.currentRow].matches = []
           state.reconData[state.currentRow].matches.push(state.reconData[state.currentRow].candidates[index])
