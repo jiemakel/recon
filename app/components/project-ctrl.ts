@@ -304,7 +304,7 @@ namespace fi.seco.recon {
               /* tslint:enable:no-var-keyword */
               response.data.head.vars.forEach(currentVar => {
                 let ccell: string = ''
-                for (let val in data[id][currentVar]) ccell += val + ', '
+                for (let val in data[id][currentVar]) ccell += val.replace(/\n/g, " ") + ', '
                 cdata.push(ccell.substr(0, ccell.length - 2))
               })
               state.data.push(cdata)
