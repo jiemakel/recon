@@ -98,6 +98,13 @@ namespace fi.seco.recon {
         additionalDescriptionHeadings: []
       }
       let state: IState = $localStorage.projects[$stateParams.projectId].state
+      if (config['loadQuery'] && !state.loadQuery) {
+        state.loadQuery = config['loadQuery']
+        if (config['loadSparqlEndpoint'])
+          state.sparqlEndpoint = config['loadSparqlEndpoint']
+        else
+          state.sparqlEndpoint = config['sparqlEndpoint']
+      }
       $scope.state = state
       $scope.currentPage = state.currentOffset / config.pageSize + 1
       hotkeys.bindTo($scope).add({

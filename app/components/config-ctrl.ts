@@ -21,6 +21,8 @@ namespace fi.seco.recon {
     sparqlEndpoint: string
     pageSize: number
     matchQuery: string
+    loadSparqlEndpoint: string
+    loadQuery: string
   }
 
   export interface IProjectStorage {
@@ -99,7 +101,9 @@ SELECT ?queryId ?entity ?label ?score {
     BIND(<QUERY_ID> AS ?queryId)
   } # /QUERY
   ?entity rdfs:label|skos:prefLabel ?label .
-}`
+}`,
+        loadSparqlEndpoint: undefined,
+        loadQuery: undefined
       }
       $scope.config = $localStorage.projects[$stateParams.projectId].config
       $scope.state = $localStorage.projects[$stateParams.projectId].state
