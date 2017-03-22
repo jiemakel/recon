@@ -1,5 +1,5 @@
 {
-  "name": "fibra",
+  "name": "recon",
   "version": "0.0.0",
   "devDependencies": {
     "@types/angular-http-auth": "1.2.31",

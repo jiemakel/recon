@@ -15,10 +15,11 @@ namespace fi.seco.recon {
     loadSPARQL: () => void
     loadFile: (file: File) => void
     saveCSVFile: () => void
-    select: (index: number) => void
+    select: (index: number, $event) => void
     deselect: () => void
     focus: (index: number, text: string) => void
     search: (index: number, text: string) => void
+    isIdInObjectArray: (id: string, array: [{id: string}]) => boolean
     queryRunning: boolean
     reviewing: boolean
     sheets: Sheet[]
@@ -97,6 +98,13 @@ namespace fi.seco.recon {
         additionalDescriptionHeadings: []
       }
       let state: IState = $localStorage.projects[$stateParams.projectId].state
+      if (config['loadQuery'] && !state.loadQuery) {
+        state.loadQuery = config['loadQuery']
+        if (config['loadSparqlEndpoint'])
+          state.sparqlEndpoint = config['loadSparqlEndpoint']
+        else
+          state.sparqlEndpoint = config['sparqlEndpoint']
+      }
       $scope.state = state
       $scope.currentPage = state.currentOffset / config.pageSize + 1
       hotkeys.bindTo($scope).add({
@@ -124,13 +132,13 @@ namespace fi.seco.recon {
         allowIn: ['INPUT', 'TEXTAREA'],
         callback: (event: Event, hotkey: angular.hotkeys.Hotkey): void => {
           if (!state.reconData[state.currentRow]) state.reconData[state.currentRow] = {
-            match: undefined,
+            matches: undefined,
             notes: '',
             candidates: []
           }
-          if (state.reconData[state.currentRow].match) state.counts.match--
+          if (state.reconData[state.currentRow].matches) state.counts.match--
           state.counts.nomatch++
-          state.reconData[state.currentRow].match = null
+          state.reconData[state.currentRow].matches = null
           if (state.currentRow === state.currentOffset + config.pageSize - 1) {
             $scope.currentPage++
             if (($scope.currentPage - 1) * config.pageSize > state.data.length) $scope.currentPage = 1
@@ -142,16 +150,46 @@ namespace fi.seco.recon {
         combo: 'ctrl+' + number,
         allowIn: ['INPUT', 'TEXTAREA'],
         callback: (event: Event, hotkey: angular.hotkeys.Hotkey): void => {
-          if (!state.reconData[state.currentRow].match) {
-            state.counts.match++
-            if (state.reconData[state.currentRow].match === null) state.counts.nomatch--
+          const selection: IMatch = state.reconData[state.currentRow].candidates[(parseInt(hotkey.combo[0].substr(5), 10) - 1)]
+          if (!state.reconData[state.currentRow].matches) {
+            if (selection)
+              state.counts.match++
+            if (state.reconData[state.currentRow].matches === null) state.counts.nomatch--
           }
-          state.reconData[state.currentRow].match = state.reconData[state.currentRow].candidates[(parseInt(hotkey.combo[0].substr(5), 10) - 1)]
+
+          state.reconData[state.currentRow].matches = []
+          if (selection) state.reconData[state.currentRow].matches.push(selection)
+          else state.reconData[state.currentRow].matches = undefined
 
           if (state.currentRow === state.currentOffset + config.pageSize - 1) {
             $scope.currentPage++
             if (($scope.currentPage - 1) * config.pageSize > state.data.length) $scope.currentPage = 1
           } else focus('row' + (state.currentRow + 1))
+          event.preventDefault()
+        }
+      })
+      for (let number: number = 1; number < 10; number++) hotkeys.bindTo($scope).add({
+        combo: 'ctrl+shift+' + number,
+        allowIn: ['INPUT', 'TEXTAREA'],
+        callback: (event: Event, hotkey: angular.hotkeys.Hotkey): void => {
+          const selection: IMatch = state.reconData[state.currentRow].candidates[(parseInt(hotkey.combo[0].substr(11), 10) - 1)]
+          if (!state.reconData[state.currentRow].matches) {
+            if (selection)
+              state.counts.match++
+            if (state.reconData[state.currentRow].matches === null) state.counts.nomatch--
+            state.reconData[state.currentRow].matches = []
+          }
+          if (selection) {
+            if (state.reconData[state.currentRow].matches.filter(match => match.id === selection.id).length > 0) {
+              state.reconData[state.currentRow].matches = state.reconData[state.currentRow].matches.filter(match => match.id !== selection.id)
+              if (state.reconData[state.currentRow].matches.length == 0) {
+                state.counts.match--
+                state.reconData[state.currentRow].matches = undefined
+              }
+            }
+          else
+            state.reconData[state.currentRow].matches.push(selection)
+          }
           event.preventDefault()
         }
       })
@@ -201,9 +239,10 @@ namespace fi.seco.recon {
               }
               state.descriptionHeadings.forEach(pname => candidatesHash[binding['entity'].value].description.push(binding[pname] ? binding[pname].value : ''))
               state.additionalDescriptionHeadings.forEach(pname => candidatesHash[binding['entity'].value].additionalDescription.push(binding['_' + pname] ? binding['_' + pname].value : ''))
+
             })
             for (let index in candidatesHashes) {
-              if (!state.reconData[index]) state.reconData[index] = {match: undefined, notes: '', candidates: []}
+              if (!state.reconData[index]) state.reconData[index] = {matches: undefined, notes: '', candidates: []}
               const candidates: ICandidate[] = []
               for (let candidate in candidatesHashes[index]) candidates.push(candidatesHashes[index][candidate])
               candidates.sort((a, b) => a.index - b.index)
@@ -256,6 +295,8 @@ namespace fi.seco.recon {
                 }
               })
             });
+            state.headings = response.data.head.vars
+            state.fileName = "sparql-results.json"
             state.data = []
             /* tslint:disable:no-var-keyword */
             for (var id in data) { // can't use let
@@ -263,10 +304,9 @@ namespace fi.seco.recon {
               /* tslint:enable:no-var-keyword */
               response.data.head.vars.forEach(currentVar => {
                 let ccell: string = ''
-                for (let val in data[id][currentVar]) ccell += val + ', '
+                for (let val in data[id][currentVar]) ccell += val.replace(/\n/g, " ") + ', '
                 cdata.push(ccell.substr(0, ccell.length - 2))
               })
-              cdata.splice(1, 0, id)
               state.data.push(cdata)
             }
             state.currentRow = 0
@@ -299,18 +339,18 @@ namespace fi.seco.recon {
             else return 0
           } else
             if (!b) return 1
-          switch (a.match) {
+          switch (a.matches) {
             case undefined:
-              if (b.match === undefined) return 0
+              if (b.matches === undefined) return 0
               return -1
             case null:
-              switch (b.match) {
+              switch (b.matches) {
                 case undefined: return 1
                 case null: return 0
                 default: return -1
               }
             default:
-              if (!b.match) return 1;
+              if (!b.matches) return 1;
               return 0;
           }
         })
@@ -332,8 +372,15 @@ namespace fi.seco.recon {
           const nrow: string[] = row.slice()
           if (!state.reconData[index])
             nrow.splice(1, 0, undefined, undefined)
-          else if (state.reconData[index].match)
-            nrow.splice(1, 0, state.reconData[index].match.id, state.reconData[index].notes)
+          else if (state.reconData[index].matches) {
+            let matches: string[]
+            if (state.reconData[index].matches !== null)
+              matches = []
+              state.reconData[index].matches.forEach(match => {
+                matches.push(match.id)
+              })
+            nrow.splice(1, 0, matches.join(", "), state.reconData[index].notes)
+          }
           else nrow.splice(1, 0, undefined, state.reconData[index].notes)
           data.push(nrow)
         })
@@ -414,25 +461,40 @@ namespace fi.seco.recon {
       }
 
       $scope.deselect = () => {
-        if (state.reconData[state.currentRow].match) state.counts.match--
+        if (state.reconData[state.currentRow].matches) state.counts.match--
         state.counts.nomatch++
-        state.reconData[state.currentRow].match = null
+        state.reconData[state.currentRow].matches = null
         if (state.currentRow === state.currentOffset + config.pageSize - 1) {
           $scope.currentPage++
           if (($scope.currentPage - 1) * config.pageSize > state.data.length) $scope.currentPage = 1
         } else focus('row' + (state.currentRow + 1))
       }
-      $scope.select = (index) => {
-        if (!state.reconData[state.currentRow].match) {
+      $scope.select = (index, $event) => {
+        if (!state.reconData[state.currentRow].matches) {
           state.counts.match++
-          if (state.reconData[state.currentRow].match === null) state.counts.nomatch--
+          if (state.reconData[state.currentRow].matches === null) state.counts.nomatch--
+          state.reconData[state.currentRow].matches = []
         }
-        state.reconData[state.currentRow].match = state.reconData[state.currentRow].candidates[index]
+        if ($event.shiftKey)
+          if (state.reconData[state.currentRow].matches.filter(match => match.id === state.reconData[state.currentRow].candidates[index].id).length > 0) {
+            state.reconData[state.currentRow].matches = state.reconData[state.currentRow].matches.filter(match => match.id !== state.reconData[state.currentRow].candidates[index].id)
+            if (state.reconData[state.currentRow].matches.length == 0) {
+              state.counts.match--
+              state.reconData[state.currentRow].matches = undefined
+            }
+          }
+          else
+            state.reconData[state.currentRow].matches.push(state.reconData[state.currentRow].candidates[index])
+        else {
+          state.reconData[state.currentRow].matches = []
+          state.reconData[state.currentRow].matches.push(state.reconData[state.currentRow].candidates[index])
 
-        if (state.currentRow === state.currentOffset + config.pageSize - 1) {
-          $scope.currentPage++
-          if (($scope.currentPage - 1) * config.pageSize > state.data.length) $scope.currentPage = 1
-        } else focus('row' + (state.currentRow + 1))
+          if (state.currentRow === state.currentOffset + config.pageSize - 1) {
+            $scope.currentPage++
+            if (($scope.currentPage - 1) * config.pageSize > state.data.length) $scope.currentPage = 1
+          } else focus('row' + (state.currentRow + 1))
+        }
+        document.getSelection().removeAllRanges()
       }
       $scope.focus = (index, text) => {
         $scope.reviewing = false
@@ -440,6 +502,9 @@ namespace fi.seco.recon {
         if (lastMultifetchFailed && (!state.reconData[index] || !state.reconData[index].candidates || state.reconData[index].candidates.length === 0)) findMatches([{text, index}])
       }
       $scope.search = (index, text) => findMatches([{text, index}])
+      $scope.isIdInObjectArray = (id, array) => {
+        return array.filter(match => match.id == id).length > 0
+      }
     }
   }
 }
