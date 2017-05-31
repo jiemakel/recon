@@ -25,7 +25,7 @@ namespace fi.seco.recon {
       controller: 'ProjectController'
     })
     $stateProvider.state('configure', {
-      url: '/:projectId/configure',
+      url: '/:projectId/configure?configURL',
       templateUrl: 'components/configure.html',
       controller: 'ConfigureController'
     })
