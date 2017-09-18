@@ -35,7 +35,7 @@ Steps:
  1. Go to [Recon](http://jiemakel.github.io/recon/)
  1. Create a new project
  1. Load the ready-built [configuration](../examples/wikidata-places.json)
- 1. Return to the main project view and load the [place CSV](data/Letters-places.csv) you created in Mare
+ 1. Return to the main project view and load the [place CSV](data/Letter-places.csv) you created in Mare
  1. Reconcile following these [instructions](https://github.com/jiemakel/recon/blob/master/README.md) from the homepage of the tool
  1. Save the reconciled file as a CSV with identifiers
 
